@@ -13,6 +13,8 @@ import UserPool from "../userpool"
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import './signup.css'
+
 const theme = createTheme();
 
 export default function SignUp() {
