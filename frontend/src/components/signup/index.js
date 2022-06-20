@@ -52,7 +52,7 @@ export default function SignUp() {
             if (err) {
                 const errors = {}
                 console.log(err)
-                if (err.message.match == 'Invalid email address format.') {
+                if (err.message.match === 'Invalid email address format.') {
                     console.log('Check: ', err.message)
                     alert(err);
                     errors[
