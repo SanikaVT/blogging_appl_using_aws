@@ -12,15 +12,50 @@ import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 
+import { CognitoUser, AuthenticationDetails } from 'amazon-cognito-identity-js';
+import UserPool from '../userpool'
+import { useNavigate } from 'react-router-dom';
+
+import './login.css'
+
 const theme = createTheme();
 
 export default function SignIn() {
+
+  const navigate = useNavigate();
+
+  const [error, setError] = React.useState('')
+
   const handleSubmit = (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    console.log({
-      email: data.get('email'),
-      password: data.get('password'),
+
+    console.log("Data", data)
+
+    const user = new CognitoUser({
+      Username: data.get('email'),
+      Pool: UserPool
+    });
+
+    console.log("User", user)
+
+    const authDetails = new AuthenticationDetails({
+      Username: data.get('email'),
+      Password: data.get('password')
+    });
+
+    user.authenticateUser(authDetails, {
+      onSuccess: (data) => {
+        console.log("onSuccess: ", data)
+        navigate('/home')
+      },
+      onFailure: (err) => {
+        console.error("onFailure: ", err)
+        setError(err.message)
+      },
+      newPasswordRequired: (data) => {
+        console.log("newPasswordRequired: ", data)
+      },
     });
   };
 
@@ -62,6 +97,7 @@ export default function SignIn() {
               id="password"
               autoComplete="current-password"
             />
+            <p>{error}</p>
             <FormControlLabel
               control={<Checkbox value="remember" color="primary" />}
               label="Remember me"
