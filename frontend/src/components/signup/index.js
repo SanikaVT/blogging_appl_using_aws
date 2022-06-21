@@ -12,23 +12,60 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import UserPool from "../userpool"
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-import './signup.css'
-
+import './signup.css';
 const theme = createTheme();
+
+const signUpVaraibles = {
+    given_name: {
+        required: true
+    }, 
+    family_name: {
+        required: true
+    }, 
+    email: {
+        required: true,
+        regex: /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+    }, 
+    phone_number: {
+        required: true
+    }, 
+    password: {
+        required: true,
+        minLength: 8,
+        regex: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
+    }
+};
 
 export default function SignUp() {
 
     const navigate = useNavigate();
-
+    const [formValue, setFormValue] = useState({});
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [formErrors, setFormErrors] = useState({});
 
+    const onFormChange = (event) => {
+        setFormValue({
+            ...formValue,
+            [event.target.name]: event.target.value
+        });
+        validateSubmission(event.target.name, event.target.value);
+        if (event.target.name === 'email') {
+            setEmail(event.target.value);
+        }
+        if (event.target.name === 'password') {
+            setPassword(event.target.value);
+        }
+    }
+
     const handleSubmit = (event) => {
         event.preventDefault();
         const data = new FormData(event.currentTarget);
-        console.log('Form Data: ', data);
+        for (const signUpProperty in signUpVaraibles) {
+            if (!validateSubmission(signUpProperty, data.get(signUpProperty))) {
+                return;
+            }
+        }
 
         const UserAttributes = [{
             Name: "email",
@@ -67,6 +104,46 @@ export default function SignUp() {
         });
     };
 
+    const validateSubmission = (property, value) => {
+        let isValid = true;
+        if (signUpVaraibles[property] && signUpVaraibles[property]['required']) {
+            setFormErrors({
+                ...formErrors,
+                [property]: {
+                    required: (!value || value === ''),
+                    valid: false,
+                    minLength: false,
+                }
+            });
+            isValid = isValid && !(!value || value === '');
+        }
+
+        if (isValid && signUpVaraibles[property] && signUpVaraibles[property]['minLength']) {
+            setFormErrors({
+                ...formErrors,
+                [property]: {
+                    required: false,
+                    valid: false,
+                    minLength: !!(value.length<signUpVaraibles[property]['minLength'])
+                }
+            });
+            isValid = isValid && !(value.length<signUpVaraibles[property]['minLength']);
+        }
+
+        if (isValid && signUpVaraibles[property] && signUpVaraibles[property]['regex']) {
+            setFormErrors({
+                ...formErrors,
+                [property]: {
+                    required: false,
+                    valid: !value.match(signUpVaraibles[property]['regex']),
+                    minLength: false,
+                }
+            });
+            isValid = isValid && value.match(signUpVaraibles[property]['regex']);
+        }
+        return isValid;
+    }
+
     return (
         <ThemeProvider theme={theme}>
             <Container component="main" maxWidth="xs">
@@ -95,7 +172,9 @@ export default function SignUp() {
                                     id="given_name"
                                     label="First Name"
                                     autoFocus
+                                    onChange={onFormChange}
                                 />
+                                {formErrors?.given_name?.required && <p>First name is required!</p>}
                             </Grid>
                             <Grid item xs={12} sm={6}>
                                 <TextField
@@ -105,7 +184,9 @@ export default function SignUp() {
                                     label="Last Name"
                                     name="family_name"
                                     autoComplete="family-name"
+                                    onChange={onFormChange}
                                 />
+                                {formErrors?.family_name?.required && <p>Last name is required!</p>}
                             </Grid>
                             <Grid item xs={12}>
                                 <TextField
@@ -116,9 +197,10 @@ export default function SignUp() {
                                     name="email"
                                     autoComplete="email"
                                     value={email}
-                                    onChange={(event) => setEmail(event.target.value)}
+                                    onChange={onFormChange}
                                 />
-                                <p>{formErrors.email}</p>
+                                {formErrors?.email?.required && <p>Email is required!</p>}
+                                {formErrors?.email?.valid && <p>Email is invalid!</p>}
                             </Grid>
                             <Grid item xs={12}>
                                 <TextField
@@ -127,8 +209,11 @@ export default function SignUp() {
                                     id="phone_number"
                                     label="Phone Number"
                                     name="phone_number"
+                                    onChange={onFormChange}
                                     autoComplete="phone_number"
                                 />
+                                {formErrors?.phone_number?.valid && <p>Phone number is invalid!</p>}
+                                {formErrors?.phone_number?.required && <p>Phone number is required!</p>}
                             </Grid>
                             <Grid item xs={12}>
                                 <TextField
@@ -139,9 +224,12 @@ export default function SignUp() {
                                     type="password"
                                     id="password"
                                     autoComplete="new-password"
+                                    onChange={onFormChange}
                                     value={password}
-                                    onChange={(event) => setPassword(event.target.value)}
                                 />
+                                {formErrors?.password?.valid && <p>Password is invalid!</p>}
+                                {formErrors?.password?.minLength && <p>Password length must be min. 8 characters</p>}
+                                {formErrors?.password?.required && <p>Password is required!</p>}
                             </Grid>
                         </Grid>
                         <Button
