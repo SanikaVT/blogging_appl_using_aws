@@ -1,41 +1,40 @@
-import { ButtonBase, CardActionArea } from "@mui/material";
-import CardContent from "@mui/material/CardContent";
-import Typography from "@mui/material/Typography";
-import Card from "@mui/material/Card";
+import { Box, Stack, Typography, IconButton, Button, Paper } from '@mui/material'
 import * as React from "react";
-import Grid from "@mui/material/Grid";
+import { useNavigate } from "react-router-dom";
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 
-export default function BlogCard() {
-  function openblog() {
-    window.location.href = "/blogdetails";
-    console.log("hello ji");
-  }
+export default function BlogCard({ handleMenu }) {
 
-  const card_border = {
-    backgroundColor: "white",
-    borderRadius: "10px",
-    borderWidth: 1,
-  };
+  const navigate = useNavigate();
 
   return (
-    <Grid item xs={6} md={3}>
-      <Card sx={{ maxWidth: 345 }} style={card_border}>
-        <ButtonBase onClick={openblog}>
-          <CardActionArea>
-            <CardContent>
-              <Typography gutterBottom variant="h6" component="div">
-                Blog
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                If your enterprise is prioritizing digital transformation
-                efforts, then the task of creating and managing a cloud security
-                strategy is imminent. This often proves to be a challenge for IT
-                teams who lack familiarity with cloud environments.{" "}
-              </Typography>
-            </CardContent>
-          </CardActionArea>
-        </ButtonBase>
-      </Card>
-    </Grid>
+    <Paper sx={{ p: 2, mt: 2 }} >
+      <Stack direction="row" sx={{ mb: 3, justifyContent: 'space-between', alignItems: 'center' }}>
+        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+          Name
+        </Typography>
+        <Stack direction="row">
+          <Button variant="contained" size="small" sx={{ margin: 'auto', mr: 0.5 }}>Follow</Button>
+          <IconButton onClick={handleMenu}>
+            <MoreVertIcon />
+          </IconButton>
+        </Stack>
+      </Stack>
+      <Typography>
+        If your enterprise is prioritizing digital transformation
+        efforts, then the task of creating and managing a cloud security
+        strategy is imminent. This often proves to be a challenge for IT
+        teams who lack familiarity with cloud environments.
+      </Typography>
+      <Stack direction="row" sx={{ alignItems: 'center' }}>
+        <IconButton>
+          <FavoriteIcon sx={{ color: 'red' }} />
+        </IconButton>
+        <Typography variant="body2">
+          122
+        </Typography>
+      </Stack>
+    </Paper>
   );
 }

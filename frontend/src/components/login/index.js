@@ -16,8 +16,6 @@ import { CognitoUser, AuthenticationDetails } from 'amazon-cognito-identity-js';
 import UserPool from '../userpool'
 import { useNavigate } from 'react-router-dom';
 
-import './login.css'
-
 const theme = createTheme();
 
 export default function SignIn() {
@@ -97,7 +95,7 @@ export default function SignIn() {
               id="password"
               autoComplete="current-password"
             />
-            <p>{error}</p>
+            <p className='error'>{error}</p>
             <FormControlLabel
               control={<Checkbox value="remember" color="primary" />}
               label="Remember me"

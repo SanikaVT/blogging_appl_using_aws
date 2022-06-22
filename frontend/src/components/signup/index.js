@@ -12,23 +12,22 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import UserPool from "../userpool"
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './signup.css';
 const theme = createTheme();
 
 const signUpVaraibles = {
     given_name: {
         required: true
-    }, 
+    },
     family_name: {
         required: true
-    }, 
+    },
     email: {
         required: true,
         regex: /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-    }, 
+    },
     phone_number: {
         required: true
-    }, 
+    },
     password: {
         required: true,
         minLength: 8,
@@ -124,10 +123,10 @@ export default function SignUp() {
                 [property]: {
                     required: false,
                     valid: false,
-                    minLength: !!(value.length<signUpVaraibles[property]['minLength'])
+                    minLength: !!(value.length < signUpVaraibles[property]['minLength'])
                 }
             });
-            isValid = isValid && !(value.length<signUpVaraibles[property]['minLength']);
+            isValid = isValid && !(value.length < signUpVaraibles[property]['minLength']);
         }
 
         if (isValid && signUpVaraibles[property] && signUpVaraibles[property]['regex']) {
@@ -174,7 +173,7 @@ export default function SignUp() {
                                     autoFocus
                                     onChange={onFormChange}
                                 />
-                                {formErrors?.given_name?.required && <p>First name is required!</p>}
+                                {formErrors?.given_name?.required && <p className='error'>First name is required!</p>}
                             </Grid>
                             <Grid item xs={12} sm={6}>
                                 <TextField
@@ -186,7 +185,7 @@ export default function SignUp() {
                                     autoComplete="family-name"
                                     onChange={onFormChange}
                                 />
-                                {formErrors?.family_name?.required && <p>Last name is required!</p>}
+                                {formErrors?.family_name?.required && <p className='error'>Last name is required!</p>}
                             </Grid>
                             <Grid item xs={12}>
                                 <TextField
@@ -199,8 +198,8 @@ export default function SignUp() {
                                     value={email}
                                     onChange={onFormChange}
                                 />
-                                {formErrors?.email?.required && <p>Email is required!</p>}
-                                {formErrors?.email?.valid && <p>Email is invalid!</p>}
+                                {formErrors?.email?.required && <p className='error'>Email is required!</p>}
+                                {formErrors?.email?.valid && <p className='error'>Email is invalid!</p>}
                             </Grid>
                             <Grid item xs={12}>
                                 <TextField
@@ -212,8 +211,8 @@ export default function SignUp() {
                                     onChange={onFormChange}
                                     autoComplete="phone_number"
                                 />
-                                {formErrors?.phone_number?.valid && <p>Phone number is invalid!</p>}
-                                {formErrors?.phone_number?.required && <p>Phone number is required!</p>}
+                                {formErrors?.phone_number?.valid && <p className='error'>Phone number is invalid!</p>}
+                                {formErrors?.phone_number?.required && <p className='error'>Phone number is required!</p>}
                             </Grid>
                             <Grid item xs={12}>
                                 <TextField
@@ -227,9 +226,9 @@ export default function SignUp() {
                                     onChange={onFormChange}
                                     value={password}
                                 />
-                                {formErrors?.password?.valid && <p>Password is invalid!</p>}
-                                {formErrors?.password?.minLength && <p>Password length must be min. 8 characters</p>}
-                                {formErrors?.password?.required && <p>Password is required!</p>}
+                                {formErrors?.password?.valid && <p className='error'>Password is invalid!</p>}
+                                {formErrors?.password?.minLength && <p className='error'>Password length must be min. 8 characters</p>}
+                                {formErrors?.password?.required && <p className='error'>Password is required!</p>}
                             </Grid>
                         </Grid>
                         <Button

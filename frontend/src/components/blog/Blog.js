@@ -4,39 +4,58 @@ import Grid from "@mui/material/Grid";
 import Box from "@mui/material/Box";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import Button from "@mui/material/Button";
+import { Container } from "@mui/system";
+import { Menu, MenuItem } from '@mui/material'
+
 export default function Blog() {
-  function write() {
-    window.location.href = "/writeblog";
+
+  const [anchorEl, setAnchorEl] = React.useState(null);
+  const open = Boolean(anchorEl);
+
+  const renderBlogs = (item) => {
+    return (<BlogCard handleMenu={handleMenu} />)
   }
 
-  const buttonprop = {
-    top: 5,
-    bgcolor: "#2E8BC0",
-    float: "right",
-    borderRadius: "15px",
-    margin: 3,
+  const handleMenu = (event, post) => {
+    setAnchorEl(event.currentTarget);
   };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleEdit = () => {
+    handleClose();
+  }
+
+  const handleDelete = () => {
+    handleClose();
+  }
 
   return (
     <Box sx={{ flexGrow: 1 }}>
-      <Button
-        variant="contained"
-        endIcon={<AddCircleIcon />}
-        sx={buttonprop}
-        onClick={write}
-      >
-        Write
-      </Button>
-      <Grid container spacing={2} columns={{ xs: 4, sm: 8, md: 12 }}>
-        <BlogCard />
-        <BlogCard />
-        <BlogCard />
-        <BlogCard />
-        <BlogCard />
-        <BlogCard />
-        <BlogCard />
-        <BlogCard />
-      </Grid>
+      <Container maxWidth="sm" sx={{ py: 1 }}>
+        {[1, 2, 3, 4, 5, 6].map(renderBlogs)}
+      </Container>
+      <Menu
+        id="menu"
+        anchorEl={anchorEl}
+        open={open}
+        onClose={handleClose}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'right',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'right',
+        }}
+        MenuListProps={{
+          'aria-labelledby': 'basic-button',
+        }}>
+        <MenuItem onClick={handleEdit}>Edit</MenuItem>
+        <MenuItem onClick={handleDelete}>Delete</MenuItem>
+      </Menu>
     </Box>
   );
 }
