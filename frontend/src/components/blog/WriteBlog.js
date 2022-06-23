@@ -67,15 +67,6 @@ export default function WriteBlog() {
                 required
                 sx={{ marginTop: 1, marginBottom: 2 }}
               />
-
-              <TextField
-                fullWidth
-                required
-                label="Short Description"
-                name={"description"}
-                multiline
-                sx={{ marginTop: 1, marginBottom: 2 }}
-              />
               <TextField
                 fullWidth
                 required
