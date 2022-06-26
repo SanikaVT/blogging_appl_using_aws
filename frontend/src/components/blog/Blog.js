@@ -1,9 +1,6 @@
 import * as React from "react";
 import BlogCard from "./BlogCard";
-import Grid from "@mui/material/Grid";
 import Box from "@mui/material/Box";
-import AddCircleIcon from "@mui/icons-material/AddCircle";
-import Button from "@mui/material/Button";
 import { Container } from "@mui/system";
 import { Menu, MenuItem } from '@mui/material'
 
@@ -13,7 +10,7 @@ export default function Blog() {
   const open = Boolean(anchorEl);
 
   const renderBlogs = (item) => {
-    return (<BlogCard handleMenu={handleMenu} />)
+    return (<BlogCard key={item} handleMenu={handleMenu} />)
   }
 
   const handleMenu = (event, post) => {

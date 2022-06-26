@@ -4,7 +4,6 @@ import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import { grey } from "@mui/material/colors";
 import FavoriteIcon from '@mui/icons-material/Favorite';
 
-
 export default function BlogDetails() {
 
   const handleMenu = () => {

@@ -1,12 +1,9 @@
-import { Box, Stack, Typography, IconButton, Button, Paper } from '@mui/material'
+import { Stack, Typography, IconButton, Button, Paper } from '@mui/material'
 import * as React from "react";
-import { useNavigate } from "react-router-dom";
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 
 export default function BlogCard({ handleMenu }) {
-
-  const navigate = useNavigate();
 
   return (
     <Paper sx={{ p: 2, mt: 2 }} >
