@@ -88,7 +88,7 @@ export default function WriteBlog() {
 }
 function postApi(title, content, author_id) {
   var request = fetch(
-    `https://c8atbntctd.execute-api.us-east-1.amazonaws.com/default?title=${title}&content=${content}&author_id=${author_id}`,
+    `https://c8atbntctd.execute-api.us-east-1.amazonaws.com/default/postblog?title=${title}&content=${content}&author_id=${author_id}`,
     {
       method: "POST",
       headers: {
