@@ -86,14 +86,14 @@ export default function WriteBlog() {
     </>
   );
 }
-export function postApi(title, content, author_id) {
+function postApi(title, content, author_id) {
   var request = fetch(
     `https://c8atbntctd.execute-api.us-east-1.amazonaws.com/default?title=${title}&content=${content}&author_id=${author_id}`,
     {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-api-key": "nxLUBfmftm1nHi3j2I5Hn5khbCkYEbv25AriQ2UM",
+        "x-api-key": "SXrshRqN2w6h65IoQRHio4jgQ3hzpGRw260VPHw0",
       },
     }
   )
