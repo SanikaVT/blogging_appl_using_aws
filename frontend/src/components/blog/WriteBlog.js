@@ -14,8 +14,12 @@ export default function WriteBlog() {
     e.preventDefault();
     const data = new FormData(e.currentTarget);
     const user = UserPool.getCurrentUser();
-    postApi(data.get("title"), data.get("content"), user.getUsername);
-    console.log("done");
+    postApi(
+      data.get("title"),
+      data.get("content"),
+      user.getUsername().toString()
+    );
+    // console.log(user);
     window.location.href = "/blog";
   };
 
