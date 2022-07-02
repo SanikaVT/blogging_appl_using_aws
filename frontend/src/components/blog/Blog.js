@@ -1,8 +1,9 @@
-import * as React from "react";
+import React, { useEffect, useState } from 'react';
 import BlogCard from "./BlogCard";
 import Box from "@mui/material/Box";
 import { Container } from "@mui/system";
 import { Menu, MenuItem } from '@mui/material'
+import axios from 'axios';
 
 export default function Blog() {
 
@@ -10,7 +11,7 @@ export default function Blog() {
   const open = Boolean(anchorEl);
 
   const renderBlogs = (item) => {
-    return (<BlogCard key={item} handleMenu={handleMenu} />)
+    return (<BlogCard key={item} item={item} handleMenu={handleMenu} />)
   }
 
   const handleMenu = (event, post) => {
@@ -29,10 +30,24 @@ export default function Blog() {
     handleClose();
   }
 
+  const [blogs, setBlogs] = useState([])
+
+  React.useEffect(() => {
+    axios({
+      method: 'get',
+      url: 'https://5foq5ouxsd.execute-api.us-east-1.amazonaws.com/getAllBlogs',
+    }).then((res) => {
+      console.log('GET Blogs API response: ', res)
+      setBlogs(res.data.body.Items)
+    }).catch(err => {
+      console.log(err)
+    });
+  }, [])
+
   return (
     <Box sx={{ flexGrow: 1 }}>
       <Container maxWidth="sm" sx={{ py: 1 }}>
-        {[1, 2, 3, 4, 5, 6].map(renderBlogs)}
+        {blogs.map(renderBlogs)}
       </Container>
       <Menu
         id="menu"
