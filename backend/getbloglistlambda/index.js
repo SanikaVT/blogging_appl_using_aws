@@ -17,7 +17,7 @@ async function listItems() {
 exports.handler = async (event, context) => {
   try {
     const data = await listItems();
-    return { body: JSON.stringify(data) };
+    return { body: data };
   } catch (err) {
     return { error: err };
   }
