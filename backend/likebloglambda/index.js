@@ -46,9 +46,9 @@ const handler = async (event, context, callback) => {
     if (!blogId) {
         return {
             statusCode: 400,
-            body: JSON.stringify({
+            body: {
                 message: "Require blogId"
-            })
+            }
         };
     }
 
@@ -56,37 +56,44 @@ const handler = async (event, context, callback) => {
     if (!userId) {
         return {
             statusCode: 400,
-            body: JSON.stringify({
+            body: {
                 message: "Require userId"
-            })
+            }
         };
     }
 
     try {
         const getBlogResponse = await getBlog(blogId);
+        console.log(getBlogResponse)
         if (!getBlogResponse.Item) {
             console.log(`Blog doesn't exists with blogId: ${blogId}`);
             return {
                 statusCode: 404,
-                body: JSON.stringify({
+                body: {
                     message: "Blog not found"
-                })
+                }
             };
         }
         let persistedBlog = getBlogResponse.Item;
         if (userAlreadyLiked(persistedBlog, userId)) {
-            console.log(`Blog doesn't exists with blogId: ${blogId}`);
+            console.log(`User has already liked the post ${blogId}`);
             return {
                 statusCode: 400,
-                body: JSON.stringify({
+                body: {
                     message: "Already liked"
-                })
+                }
             };
         }
         persistedBlog.likes_count++;
-        persistedBlog.likes.push({
-            user_id: userId
-        });
+        if (!persistedBlog.likes) {
+            persistedBlog.likes = [{
+                user_id: userId
+            }];
+        } else {
+            persistedBlog.likes.push({
+                user_id: userId
+            });
+        }
         const putParams = {
             TableName: "blog",
             Item: persistedBlog
@@ -95,18 +102,18 @@ const handler = async (event, context, callback) => {
         console.log("Upded item: ", updatedItem);
         return {
             statusCode: 200,
-            body: JSON.stringify({
+            body: {
                 message: "Successfully liked the blog"
-            })
+            }
         };
     }
     catch (err) {
-        console.log(err);
+        console.log('Error: ', err);
         return {
             statusCode: 500,
-            body: JSON.stringify({
+            body: {
                 message: "Internal server error!"
-            })
+            }
         }
     }
 }
