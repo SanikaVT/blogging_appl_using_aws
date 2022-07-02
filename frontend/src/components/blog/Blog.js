@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import BlogCard from "./BlogCard";
 import Box from "@mui/material/Box";
 import { Container } from "@mui/system";
 import { Menu, MenuItem } from '@mui/material'
 import axios from 'axios';
+import { getJwtToken } from '../../localStorage';
 
 export default function Blog() {
 
@@ -35,7 +36,10 @@ export default function Blog() {
   React.useEffect(() => {
     axios({
       method: 'get',
-      url: 'https://ahulfo14r5.execute-api.us-east-1.amazonaws.com/getAllBlogs',
+      url: 'https://5foq5ouxsd.execute-api.us-east-1.amazonaws.com/getAllBlogs',
+      headers: {
+        Authorization: getJwtToken()
+      }
     }).then((res) => {
       console.log('GET Blogs API response: ', res)
       setBlogs(res.data.body.Items)

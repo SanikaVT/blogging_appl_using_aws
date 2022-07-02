@@ -20,7 +20,7 @@ const ddbDocClient = DynamoDBDocumentClient.from(ddbClient, translateConfig);
 
 const getUserById = async (userId) => {
     const getParams = {
-        TableName: "users",
+        TableName: "user",
         Key: {
             "user_id": userId
         }
@@ -57,12 +57,12 @@ const follow = async (currentUser, referencedUser) => {
     currentUser.following_count++;
     referencedUser.followers_count++;
     const currentUserParams = {
-        TableName: 'users',
+        TableName: 'user',
         Item: currentUser
     }
     const updatedCurrentUser = await ddbDocClient.send(new PutCommand(currentUserParams));
     const updatedRefUser = await ddbDocClient.send(new PutCommand({
-        TableName: 'users',
+        TableName: 'user',
         Item: referencedUser
     }));
 }
@@ -79,11 +79,11 @@ const unfollow = async (currentUser, referenceUser) => {
         referenceUser.followers.splice(index, 1);
     }
     await ddbDocClient.send(new PutCommand({
-        TableName: 'users',
+        TableName: 'user',
         Item: currentUser
     }));
     await ddbDocClient.send(new PutCommand({
-        TableName: 'users',
+        TableName: 'user',
         Item: referenceUser
     }));
 }
@@ -94,8 +94,11 @@ const handler = async (event, context, callback) => {
     if (!action || (action != "follow" && action != "unfollow")) {
         return {
             statusCode: 400,
-            body: {
+            body: JSON.stringify({
                 message: "Only follow and unfollow actions are avaiable!"
+            }),
+            headers: {
+                'Content-Type': 'application/json',
             }
         }
     }
@@ -103,8 +106,11 @@ const handler = async (event, context, callback) => {
     if (!currentUserId) {
         return {
             statusCode: 401,
-            body: {
+            body: JSON.stringify({
                 message: "Not authorized!"
+            }),
+            headers: {
+                'Content-Type': 'application/json',
             }
         };
     }
@@ -113,8 +119,11 @@ const handler = async (event, context, callback) => {
     if (!referenceUserId) {
         return {
             statusCode: 400,
-            body: {
+            body: JSON.stringify({
                 message: "User your trying to follow doesn't exist!"
+            }),
+            headers: {
+                'Content-Type': 'application/json',
             }
         };
     }
@@ -124,8 +133,11 @@ const handler = async (event, context, callback) => {
         if (!getUserRes.Item) {
             return {
                 statusCode: 401,
-                body: {
+                body: JSON.stringify({
                     message: "Not authorized!"
+                }),
+                headers: {
+                    'Content-Type': 'application/json',
                 }
             };
         }
@@ -134,8 +146,11 @@ const handler = async (event, context, callback) => {
         if (!referenceUserRes.Item) {
             return {
                 statusCode: 400,
-                body: {
+                body: JSON.stringify({
                     message: "User your trying to follow doesn't exist!"
+                }),
+                headers: {
+                    'Content-Type': 'application/json',
                 }
             };
         }
@@ -146,8 +161,11 @@ const handler = async (event, context, callback) => {
         if (isUserAlreadyFollowing && action === "follow") {
             return {
                 statusCode: 400,
-                body: {
+                body: JSON.stringify({
                     message: "You are already following this user!"
+                }),
+                headers: {
+                    'Content-Type': 'application/json',
                 }
             };
         }
@@ -155,8 +173,11 @@ const handler = async (event, context, callback) => {
         if (!isUserAlreadyFollowing && action === "unfollow") {
             return {
                 statusCode: 400,
-                body: {
+                body: JSON.stringify({
                     message: "You are already not following this user!"
+                }),
+                headers: {
+                    'Content-Type': 'application/json',
                 }
             };
         }
@@ -173,13 +194,14 @@ const handler = async (event, context, callback) => {
         console.log(err);
         return {
             statusCode: 500,
-            body: {
+            body: JSON.stringify({
                 message: "Internal Server Error!"
+            }),
+            headers: {
+                'Content-Type': 'application/json',
             }
         }
     }
-
-
 }
 
 export { handler };
