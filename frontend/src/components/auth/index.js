@@ -2,6 +2,8 @@
 import React, { createContext } from 'react';
 import { CognitoUser, AuthenticationDetails } from 'amazon-cognito-identity-js';
 import Pool from './UserPool'
+import { setUserId } from '../../localStorage';
+import { getUserId } from '../../localStorage';
 
 const AuthContext = createContext();
 
@@ -18,6 +20,8 @@ const Auth = props => {
                         reject(err);
                     } else {
                         console.log('Session from Auth Context: ', session)
+                        setUserId(session.idToken.payload.sub)
+                        console.log(getUserId())
                         resolve(session);
                     }
                 })

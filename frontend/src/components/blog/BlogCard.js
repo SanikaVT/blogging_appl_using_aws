@@ -2,6 +2,7 @@ import { Stack, Typography, IconButton, Button, Paper } from "@mui/material";
 import * as React from "react";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
+import { Box } from "@mui/system";
 
 export default function BlogCard({ handleMenu, item }) {
   return (
@@ -26,6 +27,11 @@ export default function BlogCard({ handleMenu, item }) {
           </IconButton>
         </Stack>
       </Stack>
+      <hr />
+      <Typography sx={{ fontWeight: "bold" }}>
+        {item.title}
+      </Typography>
+      <br />
       <Typography>
         {item.content}
       </Typography>
@@ -35,6 +41,6 @@ export default function BlogCard({ handleMenu, item }) {
         </IconButton>
         <Typography variant="body2">{item.likes_count}</Typography>
       </Stack>
-    </Paper>
+    </Paper >
   );
 }

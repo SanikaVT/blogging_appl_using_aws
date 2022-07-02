@@ -7,20 +7,30 @@ import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import * as React from "react";
 import DenseAppBar from "../Navbar";
-import UserPool from "../auth/UserPool";
-import { ActionTypes } from "@mui/base";
+import { getUserId } from "../../localStorage";
+import axios from 'axios';
+import { useNavigate } from "react-router-dom";
+
 export default function WriteBlog() {
+  const navigate = useNavigate();
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const data = new FormData(e.currentTarget);
-    const user = UserPool.getCurrentUser();
-    postApi(
-      data.get("title"),
-      data.get("content"),
-      user.getUsername().toString()
-    );
-    // console.log(user);
-    window.location.href = "/blog";
+
+    axios({
+      method: 'post',
+      url: 'https://ahulfo14r5.execute-api.us-east-1.amazonaws.com/postBlog',
+      data: {
+        title: data.get("title"),
+        content: data.get("content"),
+        author_id: getUserId()
+      }
+    }).then(() => {
+      navigate('/home');
+    }).catch(err => {
+      console.log('Error while calling POST blog API: ', err)
+    });
   };
 
   const card_1 = {
@@ -90,24 +100,8 @@ export default function WriteBlog() {
     </>
   );
 }
-function postApi(title, content, author_id) {
-  var request = fetch(
-    `https://c8atbntctd.execute-api.us-east-1.amazonaws.com/default/postblog?title=${title}&content=${content}&author_id=${author_id}`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": "SXrshRqN2w6h65IoQRHio4jgQ3hzpGRw260VPHw0",
-      },
-    }
-  )
-    .then((response) => response.json())
-    .then((data) => {
-      return data;
-    })
-    .catch((error) => console.log("Error while adding:", error));
-  return {
-    type: ActionTypes.ADD_TODO,
-    payload: request,
-  };
+
+function postApi(data) {
+  console.log('POST API called.........')
+
 }
