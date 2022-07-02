@@ -42,12 +42,14 @@ const userAlreadyLiked = (blog, userId) => {
 const handler = async (event, context, callback) => {
     const requestBody = JSON.parse(event.body);
     const blogId = requestBody.blogId;
-    console.log("Blog Id: ", blogId);
     if (!blogId) {
         return {
             statusCode: 400,
-            body: {
+            body: JSON.stringify({
                 message: "Require blogId"
+            }),
+            headers: {
+                'Content-Type': 'application/json'
             }
         };
     }
@@ -56,31 +58,35 @@ const handler = async (event, context, callback) => {
     if (!userId) {
         return {
             statusCode: 400,
-            body: {
+            body: JSON.stringify({
                 message: "Require userId"
+            }),
+            headers: {
+                'Content-Type': 'application/json'
             }
         };
     }
 
     try {
         const getBlogResponse = await getBlog(blogId);
-        console.log(getBlogResponse)
         if (!getBlogResponse.Item) {
             console.log(`Blog doesn't exists with blogId: ${blogId}`);
             return {
                 statusCode: 404,
-                body: {
-                    message: "Blog not found"
+                body: JSON.stringify({ message: "Blog not found" }),
+                headers: {
+                    'Content-Type': 'application/json',
                 }
             };
         }
         let persistedBlog = getBlogResponse.Item;
         if (userAlreadyLiked(persistedBlog, userId)) {
-            console.log(`User has already liked the post ${blogId}`);
+            console.log(`User already liked the blog: ${blogId}`);
             return {
                 statusCode: 400,
-                body: {
-                    message: "Already liked"
+                body: JSON.stringify({ message: "Already liked" }),
+                headers: {
+                    'Content-Type': 'application/json',
                 }
             };
         }
@@ -89,7 +95,8 @@ const handler = async (event, context, callback) => {
             persistedBlog.likes = [{
                 user_id: userId
             }];
-        } else {
+        }
+        else {
             persistedBlog.likes.push({
                 user_id: userId
             });
@@ -99,20 +106,31 @@ const handler = async (event, context, callback) => {
             Item: persistedBlog
         }
         const updatedItem = await ddbDocClient.send(new PutCommand(putParams));
-        console.log("Upded item: ", updatedItem);
+        const getParams = {
+            TableName: "blog",
+            Key: {
+                "blog_id": persistedBlog.blog_id
+            }
+        }
+        const updatedBlog = await ddbDocClient.send(new GetCommand(getParams));
+        const response = {
+            data: updatedBlog.Item
+        }
         return {
             statusCode: 200,
-            body: {
-                message: "Successfully liked the blog"
+            body: JSON.stringify(response),
+            headers: {
+                'Content-Type': 'application/json',
             }
         };
     }
     catch (err) {
-        console.log('Error: ', err);
+        console.log(err);
         return {
             statusCode: 500,
-            body: {
-                message: "Internal server error!"
+            body: JSON.stringify({ message: "Internal server error!" }),
+            headers: {
+                'Content-Type': 'application/json',
             }
         }
     }

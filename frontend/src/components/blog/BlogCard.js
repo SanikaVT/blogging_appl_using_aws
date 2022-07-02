@@ -2,25 +2,52 @@ import { Stack, Typography, IconButton, Button, Paper } from "@mui/material";
 import * as React from "react";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import { getUserId } from "../../localStorage";
+import { getJwtToken, getUserId } from "../../localStorage";
 import axios from "axios";
 
 export default function BlogCard({ handleMenu, item }) {
 
+    const [itemState, setItemState] = React.useState(item);
+
+    const [followStatus, setFollowStatus] = React.useState('Follow');
+
     const likeBlog = (blogId) => {
-        console.log('BlogId:', blogId)
-        console.log('UserId:', getUserId())
         axios({
             method: 'put',
-            url: 'https://ahulfo14r5.execute-api.us-east-1.amazonaws.com/likeBlog',
+            url: 'https://5foq5ouxsd.execute-api.us-east-1.amazonaws.com/likeBlog',
             data: {
                 blogId: blogId,
                 userId: getUserId()
+            },
+            headers: {
+                Authorization: getJwtToken()
             }
         }).then((res) => {
-            console.log(res.message);
+            console.log("Like API response: ",res.data.data);
+            setItemState(res.data.data);
         }).catch(err => {
             console.log('Error while calling like blog API: ', err)
+        });
+    };
+
+    const followOrUnFollow = (referenceUserId) => {
+        console.log("Reference user Id:", referenceUserId);
+        axios({
+            method: 'put',
+            url: 'https://5foq5ouxsd.execute-api.us-east-1.amazonaws.com/follow-or-unfollow',
+            data: {
+                action: followStatus.toLowerCase(),
+                currentUserId: getUserId(),
+                referenceUserId: referenceUserId
+            },
+            headers: {
+                Authorization: getJwtToken()
+            }
+        }).then((res) => {
+            console.log("Follow or unFollow API response: ", res);
+            setFollowStatus((followStatus==='Follow')? 'Unfollow': 'Follow');
+        }).catch(err => {
+            console.log(`Error occurred while trying to ${followStatus} user ${referenceUserId}`);
         });
     };
 
@@ -38,8 +65,9 @@ export default function BlogCard({ handleMenu, item }) {
                         variant="contained"
                         size="small"
                         sx={{ margin: "auto", mr: 0.5 }}
+                        onClick = {() => followOrUnFollow(item.author_id)}
                     >
-                        Follow
+                        {followStatus}
                     </Button>
                     <IconButton onClick={handleMenu}>
                         <MoreVertIcon />
@@ -48,17 +76,17 @@ export default function BlogCard({ handleMenu, item }) {
             </Stack>
             <hr />
             <Typography sx={{ fontWeight: "bold" }}>
-                {item.title}
+                {itemState.title}
             </Typography>
             <br />
             <Typography>
-                {item.content}
+                {itemState.content}
             </Typography>
             <Stack direction="row" sx={{ alignItems: "center" }}>
                 <IconButton>
-                    <FavoriteIcon sx={{ color: "red" }} onClick={() => likeBlog(item.blog_id)} />
+                    <FavoriteIcon sx={{ color: "red" }} onClick={() => likeBlog(itemState.blog_id)} />
                 </IconButton>
-                <Typography variant="body2">{item.likes_count}</Typography>
+                <Typography variant="body2">{itemState.likes_count}</Typography>
             </Stack>
         </Paper >
     );
