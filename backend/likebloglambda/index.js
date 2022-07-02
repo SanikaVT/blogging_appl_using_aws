@@ -20,7 +20,7 @@ const ddbDocClient = DynamoDBDocumentClient.from(ddbClient, translateConfig);
 
 const getBlog = async (blogId) => {
     const getParams = {
-        TableName: "blogs",
+        TableName: "blog",
         Key: {
             "blog_id": blogId
         }
@@ -29,7 +29,7 @@ const getBlog = async (blogId) => {
 };
 
 const userAlreadyLiked = (blog, userId) => {
-    if(!blog || !userId) {
+    if (!blog || !userId) {
         return false;
     }
     const likedUsers = blog.likes;
@@ -61,7 +61,7 @@ const handler = async (event, context, callback) => {
             })
         };
     }
-    
+
     try {
         const getBlogResponse = await getBlog(blogId);
         if (!getBlogResponse.Item) {
@@ -88,7 +88,7 @@ const handler = async (event, context, callback) => {
             user_id: userId
         });
         const putParams = {
-            TableName: "blogs",
+            TableName: "blog",
             Item: persistedBlog
         }
         const updatedItem = await ddbDocClient.send(new PutCommand(putParams));
@@ -111,4 +111,4 @@ const handler = async (event, context, callback) => {
     }
 }
 
-export {handler};
+export { handler };
