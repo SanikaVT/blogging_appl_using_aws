@@ -40,7 +40,6 @@ const userAlreadyLiked = (blog, userId) => {
 }
 
 const handler = async (event, context, callback) => {
-    // console.log("Event, ", JSON.parse(event.body));
     const requestBody = JSON.parse(event.body);
     const blogId = requestBody.blogId;
     console.log("Blog Id: ", blogId);

@@ -1,1 +1,3 @@
 backend/likebloglambda/node_modules
+backend/followOrUnfollowUserlambda/node_modules
+backend/getbloglistlambda/node_modules/
