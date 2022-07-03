@@ -36,7 +36,7 @@ export default function Blog() {
   React.useEffect(() => {
     axios({
       method: 'get',
-      url: 'https://5foq5ouxsd.execute-api.us-east-1.amazonaws.com/getAllBlogs',
+      url: 'https://ahulfo14r5.execute-api.us-east-1.amazonaws.com/getAllBlogs',
       headers: {
         Authorization: getJwtToken()
       }

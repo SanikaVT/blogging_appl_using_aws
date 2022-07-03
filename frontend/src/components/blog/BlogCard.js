@@ -14,7 +14,7 @@ export default function BlogCard({ handleMenu, item }) {
     const likeBlog = (blogId) => {
         axios({
             method: 'put',
-            url: 'https://5foq5ouxsd.execute-api.us-east-1.amazonaws.com/likeBlog',
+            url: 'https://ahulfo14r5.execute-api.us-east-1.amazonaws.com/likeBlog',
             data: {
                 blogId: blogId,
                 userId: getUserId()
@@ -23,7 +23,7 @@ export default function BlogCard({ handleMenu, item }) {
                 Authorization: getJwtToken()
             }
         }).then((res) => {
-            console.log("Like API response: ",res.data.data);
+            console.log("Like API response: ", res.data.data);
             setItemState(res.data.data);
         }).catch(err => {
             console.log('Error while calling like blog API: ', err)
@@ -34,7 +34,7 @@ export default function BlogCard({ handleMenu, item }) {
         console.log("Reference user Id:", referenceUserId);
         axios({
             method: 'put',
-            url: 'https://5foq5ouxsd.execute-api.us-east-1.amazonaws.com/follow-or-unfollow',
+            url: 'https://ahulfo14r5.execute-api.us-east-1.amazonaws.com/follow-or-unfollow',
             data: {
                 action: followStatus.toLowerCase(),
                 currentUserId: getUserId(),
@@ -45,7 +45,7 @@ export default function BlogCard({ handleMenu, item }) {
             }
         }).then((res) => {
             console.log("Follow or unFollow API response: ", res);
-            setFollowStatus((followStatus==='Follow')? 'Unfollow': 'Follow');
+            setFollowStatus((followStatus === 'Follow') ? 'Unfollow' : 'Follow');
         }).catch(err => {
             console.log(`Error occurred while trying to ${followStatus} user ${referenceUserId}`);
         });
@@ -58,14 +58,14 @@ export default function BlogCard({ handleMenu, item }) {
                 sx={{ mb: 3, justifyContent: "space-between", alignItems: "center" }}
             >
                 <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-                    {item.author_id}
+                    {item.userInformation.user.firstName}
                 </Typography>
                 <Stack direction="row">
                     <Button
                         variant="contained"
                         size="small"
                         sx={{ margin: "auto", mr: 0.5 }}
-                        onClick = {() => followOrUnFollow(item.author_id)}
+                        onClick={() => followOrUnFollow(item.author_id)}
                     >
                         {followStatus}
                     </Button>

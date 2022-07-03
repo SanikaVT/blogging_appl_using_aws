@@ -7,9 +7,9 @@ import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import * as React from "react";
 import DenseAppBar from "../Navbar";
-import { getUserId } from "../../localStorage";
 import axios from 'axios';
 import { useNavigate } from "react-router-dom";
+import { getJwtToken, getUserId } from "../../localStorage";
 
 export default function WriteBlog() {
   const navigate = useNavigate();
@@ -25,6 +25,9 @@ export default function WriteBlog() {
         title: data.get("title"),
         content: data.get("content"),
         author_id: getUserId()
+      },
+      headers: {
+        Authorization: getJwtToken()
       }
     }).then(() => {
       navigate('/home');
@@ -99,9 +102,4 @@ export default function WriteBlog() {
       </Container>
     </>
   );
-}
-
-function postApi(data) {
-  console.log('POST API called.........')
-
 }
