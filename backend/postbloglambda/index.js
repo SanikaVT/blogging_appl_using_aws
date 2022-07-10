@@ -17,7 +17,8 @@ exports.handler = async (event, context, callback) => {
       content: requestBody.content,
       author_id: requestBody.author_id,
       creation_date: new Date(Date.now()).toString(),
-      likes_count: 0
+      likes_count: 0,
+      images: requestBody.images
     },
   };
 
