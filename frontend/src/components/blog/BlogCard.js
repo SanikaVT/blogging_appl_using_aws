@@ -1,4 +1,4 @@
-import { Stack, Typography, IconButton, Button, Paper } from "@mui/material";
+import { Stack, Typography, IconButton, Button, Paper, ImageListItem } from "@mui/material";
 import * as React from "react";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
@@ -79,12 +79,30 @@ export default function BlogCard({ handleMenu, item }) {
                 {itemState.title}
             </Typography>
             <br />
+
+            <Paper
+                sx={{ display: 'flex', justifyContent: 'center' }}
+                variant='elevation'>
+                {
+                    item.images.length != 0 &&
+                    item.images.map((image, index) => (
+                        <ImageListItem sx={{ margin: '5px' }}>
+                            <img
+                                src={`${image.url}?fit=crop&auto=format`}
+                                loading="lazy"
+                            />
+                        </ImageListItem>
+
+                    ))
+                }
+            </Paper>
+            <br />
             <Typography>
                 {itemState.content}
             </Typography>
             <Stack direction="row" sx={{ alignItems: "center" }}>
-                <IconButton>
-                    <FavoriteIcon sx={{ color: "red" }} onClick={() => likeBlog(itemState.blog_id)} />
+                <IconButton onClick={() => likeBlog(itemState.blog_id)} >
+                    <FavoriteIcon sx={{ color: "red" }} />
                 </IconButton>
                 <Typography variant="body2">{itemState.likes_count}</Typography>
             </Stack>
