@@ -4,7 +4,7 @@ import Box from "@mui/material/Box";
 import { Container } from "@mui/system";
 import { Menu, MenuItem } from '@mui/material'
 import axios from 'axios';
-import { getJwtToken } from '../../localStorage';
+import { getJwtToken, getUserId } from '../../localStorage';
 
 export default function Blog() {
 
@@ -42,11 +42,30 @@ export default function Blog() {
       }
     }).then((res) => {
       console.log('GET Blogs API response: ', res)
-      setBlogs(res.data.body.Items)
+      const loggedInUserId = getUserId();
+      const parsedBlogs = addFollowStatus(loggedInUserId, res.data.body.Items);
+      console.log(parsedBlogs);
+      setBlogs(parsedBlogs)
     }).catch(err => {
       console.log(err)
     });
   }, [])
+
+  const addFollowStatus = (loggedInUserId, blogs)  => {
+    if (!blogs || blogs.length === 0) {
+      return blogs;
+    }
+    return blogs.map(blog => {
+      const author = blog.userInformation;
+      const authorFollowers = author.followers;
+      const blogLikes = blog.likes;
+      return {
+        ...blog,
+        followStatus: (authorFollowers.find(follower => follower.user_id === loggedInUserId) === undefined) ? 'Follow' : 'Unfollow',
+        liked: (blogLikes && blogLikes.find(blogLike => blogLike.user_id === loggedInUserId) !== undefined)
+      }
+    });
+  }
 
   return (
     <Box sx={{ flexGrow: 1 }}>

@@ -1,6 +1,7 @@
 import { Stack, Typography, IconButton, Button, Paper, ImageListItem } from "@mui/material";
 import * as React from "react";
 import FavoriteIcon from "@mui/icons-material/Favorite";
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { getJwtToken, getUserId } from "../../localStorage";
 import axios from "axios";
@@ -9,7 +10,11 @@ export default function BlogCard({ handleMenu, item }) {
 
     const [itemState, setItemState] = React.useState(item);
 
-    const [followStatus, setFollowStatus] = React.useState('Follow');
+    const [followStatus, setFollowStatus] = React.useState(item.followStatus);
+
+    const [isLiked, setIsLiked] = React.useState(item.liked);
+
+    const [showCommentInput, setShowCommentInput] = React.useState(false);
 
     const likeBlog = (blogId) => {
         axios({
@@ -25,6 +30,7 @@ export default function BlogCard({ handleMenu, item }) {
         }).then((res) => {
             console.log("Like API response: ", res.data.data);
             setItemState(res.data.data);
+            setIsLiked(true);
         }).catch(err => {
             console.log('Error while calling like blog API: ', err)
         });
@@ -102,9 +108,9 @@ export default function BlogCard({ handleMenu, item }) {
             </Typography>
             <Stack direction="row" sx={{ alignItems: "center" }}>
                 <IconButton onClick={() => likeBlog(itemState.blog_id)} >
-                    <FavoriteIcon sx={{ color: "red" }} />
+                    {(isLiked) ? <FavoriteIcon sx={{ color: "red", mr: "2px" }} variant="contained"/> : <FavoriteBorderIcon/>}
+                    <Typography variant="body2">{itemState.likes_count}</Typography>
                 </IconButton>
-                <Typography variant="body2">{itemState.likes_count}</Typography>
             </Stack>
         </Paper >
     );
