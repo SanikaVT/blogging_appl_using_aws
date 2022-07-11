@@ -84,21 +84,21 @@ export default function BlogCard({ handleMenu, item }) {
             <Typography sx={{ fontWeight: "bold" }}>
                 {itemState.title}
             </Typography>
-            <br />
-
             <Paper
                 sx={{ display: 'flex', justifyContent: 'center' }}
                 variant='elevation'>
                 {
                     item.images.length != 0 &&
                     item.images.map((image, index) => (
-                        <ImageListItem sx={{ margin: '5px' }} key={index}>
-                            <img
-                                src={`${image.url}?fit=crop&auto=format`}
-                                loading="lazy"
-                            />
-                        </ImageListItem>
-
+                        <>
+                            <br />
+                            <ImageListItem sx={{ margin: '5px' }} key={index}>
+                                <img
+                                    src={`${image.url}?fit=crop&auto=format`}
+                                    loading="lazy"
+                                />
+                            </ImageListItem>
+                        </>
                     ))
                 }
             </Paper>
