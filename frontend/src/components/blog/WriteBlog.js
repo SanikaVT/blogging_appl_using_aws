@@ -42,7 +42,7 @@ export default function WriteBlog() {
   }
 
   const onDeleteImage = (url) => {
-    const filteredImages = images.filter((image) => image != url);
+    const filteredImages = images.filter((image) => image !== url);
     setImages(filteredImages);
   }
 
