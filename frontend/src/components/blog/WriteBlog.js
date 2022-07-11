@@ -7,28 +7,12 @@ import axios from 'axios';
 import { useNavigate } from "react-router-dom";
 import { getJwtToken, getUserId } from "../../localStorage";
 import './styles.css'
-import AWS from 'aws-sdk'
-import { PutObjectCommand } from "@aws-sdk/client-s3";
-import { s3Client } from "../../libs/s3Client.js";
-
-const S3_BUCKET = 'my-blogging-images';
-const REGION = 'us-east-1';
-
-const bucket = new AWS.S3({
-  params: { Bucket: S3_BUCKET },
-  region: REGION,
-  AWS_SDK_LOAD_CONFIG: 1
-})
-
-window.Buffer = window.Buffer || require("buffer").Buffer;
-// const ReactS3Client = new S3(config);
 
 export default function WriteBlog() {
   const navigate = useNavigate();
 
   const fileInput = useRef(null);
   const [images, setImages] = useState([]);
-  const [fileList, setFileList] = useState([]);
 
   const onImageSelect = (e) => {
     if (e.target.files) {
@@ -36,15 +20,18 @@ export default function WriteBlog() {
       const newImages = [];
       let lastId = images.length;
 
+      let reader = new FileReader();
+
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        const url = URL.createObjectURL(file);
+        reader.readAsDataURL(file);
+        reader.onload = () => {
+          newImages.push(reader.result)
+          setImages((oldImages) => [...oldImages, ...newImages]);
+        };
         const id = lastId + 1;
-        newImages.push(url);
         lastId = id;
       }
-      setImages((oldImages) => [...oldImages, ...newImages]);
-      setFileList((oldFiles) => [...oldFiles, ...files]);
     }
   }
 
@@ -63,26 +50,26 @@ export default function WriteBlog() {
     e.preventDefault();
     const data = new FormData(e.currentTarget);
 
-    //Uploading images to S3 bucket
     let imageArr = [];
-    for (const file of fileList) {
-      console.log('Called');
+
+    for await (const image of images) {
       try {
-        const bucketParams = {
-          Bucket: S3_BUCKET,
-          Key: getUserId() + '_' + file.name,
-          Body: file,
-          ACL: 'public-read'
-        };
-        const res = await s3Client.send(new PutObjectCommand(bucketParams));
-        if (res) {
-          imageArr.push({ url: `https://${bucketParams.Bucket}.s3.amazonaws.com/${bucketParams.Key}` });
-        }
+        const res = await axios({
+          method: 'post',
+          url: 'https://ahulfo14r5.execute-api.us-east-1.amazonaws.com/image',
+          data: {
+            file: image,
+            key: getUserId() + '_' + Date.now(),
+          },
+          headers: {
+            Authorization: getJwtToken()
+          }
+        })
+        imageArr.push({ url: res.data.uploadResult.Location })
       } catch (err) {
-        console.log(err)
+        console.log('Error while calling POST blog API: ', err)
       }
     }
-    console.log(imageArr);
 
     axios({
       method: 'post',
@@ -157,12 +144,13 @@ export default function WriteBlog() {
               />
 
               {images.length > 0 &&
-                <Box className="images">
+                < Box className="images">
                   {images.map((image, index) =>
                     <div className="image-container" key={index + ''}>
                       <img
                         className="image"
                         src={image}
+                        srcSet={image}
                         width="200"
                         height="200"
                       />
@@ -213,7 +201,7 @@ export default function WriteBlog() {
             </form>
           </Box>
         </Card>
-      </Container>
+      </Container >
     </>
   );
 }
