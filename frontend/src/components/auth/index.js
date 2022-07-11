@@ -2,7 +2,7 @@
 import React, { createContext } from 'react';
 import { CognitoUser, AuthenticationDetails } from 'amazon-cognito-identity-js';
 import Pool from './UserPool'
-import { setJwtToken, setUserId } from '../../localStorage';
+import { setFullName, setJwtToken, setUserId } from '../../localStorage';
 import { getUserId } from '../../localStorage';
 
 const AuthContext = createContext();
@@ -21,7 +21,8 @@ const Auth = props => {
                     } else {
                         console.log('Session from Auth Context: ', session)
                         setJwtToken(session.idToken.jwtToken);
-                        setUserId(session.idToken.payload.sub)
+                        setUserId(session.idToken.payload.sub);
+                        setFullName(`${session.idToken.payload?.given_name} ${session.idToken.payload?.family_name}`);
                         console.log(getUserId())
                         resolve(session);
                     }

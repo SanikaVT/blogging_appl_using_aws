@@ -55,6 +55,7 @@ const handler = async (event, context, callback) => {
         }
         blog.comments.push({
             user_id: reqBody.userId,
+            user_name: reqBody.userName,
             comment: reqBody.comment,
             comment_time: new Date(Date.now()).toString()
         })

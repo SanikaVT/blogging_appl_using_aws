@@ -4,7 +4,7 @@ import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import CommentIcon from '@mui/icons-material/Comment';
-import { getJwtToken, getUserId } from "../../localStorage";
+import { getFullName, getJwtToken, getUserId } from "../../localStorage";
 import axios from "axios";
 import CommentInput from "../commentInput";
 import SingleComment from "../SingleComment";
@@ -90,6 +90,7 @@ export default function BlogCard({ handleMenu, item }) {
             url: hostUrl + '/comment/' + itemState.blog_id,
             data: {
                 userId: getUserId(),
+                userName: getFullName(),
                 comment: commentContent
             },
             headers: {
@@ -114,9 +115,9 @@ export default function BlogCard({ handleMenu, item }) {
             return comments;
         }
         const parsedComments = comments.map(comment => {
-            console.log(new Date(comment.comment_time));
             return {
                 user_id: comment.user_id,
+                user_name: comment.user_name,
                 comment_time: new Date(comment.comment_time),
                 comment: comment.comment
             }
@@ -128,9 +129,7 @@ export default function BlogCard({ handleMenu, item }) {
     function generateCommentsList() {
         return visibleComments?.map(comment => {
             return (<SingleComment
-                user_id={comment.user_id}
-                comment_time={comment.comment_time}
-                comment={comment.comment}
+                comment = {comment}
                 key={comment.comment_time} />);
         });
     }
@@ -211,14 +210,18 @@ export default function BlogCard({ handleMenu, item }) {
                             onPostComment={onCommentPost} />
                         <Stack sx={{ mt: '25px' }} direction="column" spacing={2}>
                             {generateCommentsList()}
-                            <Typography sx={{
-                                ':hover': {
-                                    cursor: 'pointer',
-                                    backgroundColor: '#edebed'
-                                },
-                                fontSize: '12px',
-                                textTransform: 'lowercase'
-                            }} onClick={onLoadMoreComments} variant="button">load more comments</Typography>
+                            {
+                                (itemState.comments_count > visibleCommentsCount) ? 
+                                (<Typography sx={{
+                                    ':hover': {
+                                        cursor: 'pointer',
+                                        backgroundColor: '#edebed'
+                                    },
+                                    fontSize: '12px',
+                                    textTransform: 'lowercase'
+                                }} onClick={onLoadMoreComments} variant="button">load more comments</Typography>) : (<></>)
+                            }
+                            
                         </Stack>
                     </> :
                     <></>

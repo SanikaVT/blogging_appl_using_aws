@@ -1,0 +1,4 @@
+.commentRow {
+    display: flex;
+    flex-direction: row;
+}
