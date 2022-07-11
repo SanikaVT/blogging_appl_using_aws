@@ -42,7 +42,7 @@ export default function WriteBlog() {
   }
 
   const onDeleteImage = (url) => {
-    const filteredImages = images.filter((image) => image != url);
+    const filteredImages = images.filter((image) => image !== url);
     setImages(filteredImages);
   }
 
@@ -73,7 +73,7 @@ export default function WriteBlog() {
 
     axios({
       method: 'post',
-      url: 'https://ahulfo14r5.execute-api.us-east-1.amazonaws.com/postBlog',
+      url: 'https://5foq5ouxsd.execute-api.us-east-1.amazonaws.com/postBlog',
       data: {
         title: data.get("title"),
         content: data.get("content"),

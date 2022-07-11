@@ -74,7 +74,7 @@ export default function Blog() {
       const blogLikes = blog.likes;
       return {
         ...blog,
-        followStatus: (authorFollowers.find(follower => follower.user_id === loggedInUserId) === undefined) ? 'Follow' : 'Unfollow',
+        followStatus: (!authorFollowers || authorFollowers.find(follower => follower.user_id === loggedInUserId) === undefined) ? 'Follow' : 'Unfollow',
         liked: (blogLikes && blogLikes.find(blogLike => blogLike.user_id === loggedInUserId) !== undefined)
       }
     });
