@@ -21,7 +21,7 @@ const getBlogById = async (blogId) => {
     const getBlogParams = {
         TableName: "blog",
         Key: {
-            'blog_id': blogId,
+            blog_id: blogId,
         }
     };
     return ddbDocClient.send(new GetCommand(getBlogParams));
@@ -56,25 +56,21 @@ const handler = async (event, context, callback) => {
         blog.comments.push({
             user_id: reqBody.userId,
             comment: reqBody.comment,
-            comment_time: new Date().toLocaleString()
+            comment_time: new Date(Date.now()).toString()
         })
         const putParams = {
             TableName: 'blog',
             Item: blog
         }
         await ddbDocClient.send(new PutCommand(putParams));
-        const updatedBlog = ddbDocClient.send(new GetCommand({
-            TableName: 'blog',
-            Key: {
-                blog_id: blogId
-            }
-        }));
+        const updatedBlog = await getBlogById(blogId);
+        console.log(updatedBlog);
         const res = {
             data: updatedBlog.Item
         };
         return {
             statusCode: 200,
-            body:JSON.stringify(res),
+            body:JSON.stringify(updatedBlog.Item),
             headers: {
                 'Content-Type': 'application/json',
             }

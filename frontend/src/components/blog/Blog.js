@@ -5,6 +5,7 @@ import { Container } from "@mui/system";
 import { Menu, MenuItem } from '@mui/material'
 import axios from 'axios';
 import { getJwtToken, getUserId } from '../../localStorage';
+import hostUrl from '../../constants';
 
 export default function Blog() {
 
@@ -33,7 +34,7 @@ export default function Blog() {
     console.log(blogId);
     axios({
       method: 'delete',
-      url: 'https://ahulfo14r5.execute-api.us-east-1.amazonaws.com/deleteBlog/' + blogId,
+      url: hostUrl + '/deleteBlog/' + blogId,
       headers: {
         Authorization: getJwtToken()
       }
@@ -49,7 +50,7 @@ export default function Blog() {
   React.useEffect(() => {
     axios({
       method: 'get',
-      url: 'https://ahulfo14r5.execute-api.us-east-1.amazonaws.com/getAllBlogs',
+      url: hostUrl + '/getAllBlogs',
       headers: {
         Authorization: getJwtToken()
       }

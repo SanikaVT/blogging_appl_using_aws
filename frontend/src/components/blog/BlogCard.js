@@ -8,6 +8,7 @@ import { getJwtToken, getUserId } from "../../localStorage";
 import axios from "axios";
 import CommentInput from "../commentInput";
 import SingleComment from "../SingleComment";
+import hostUrl from "../../constants";
 
 export default function BlogCard({ handleMenu, item }) {
 
@@ -24,7 +25,7 @@ export default function BlogCard({ handleMenu, item }) {
     const likeBlog = (blogId) => {
         axios({
             method: 'put',
-            url: 'https://ahulfo14r5.execute-api.us-east-1.amazonaws.com/likeBlog',
+            url: hostUrl + '/likeBlog',
             data: {
                 blogId: blogId,
                 userId: getUserId()
@@ -48,7 +49,7 @@ export default function BlogCard({ handleMenu, item }) {
         console.log("Reference user Id:", referenceUserId);
         axios({
             method: 'put',
-            url: 'https://ahulfo14r5.execute-api.us-east-1.amazonaws.com/follow-or-unfollow',
+            url: hostUrl + '/follow-or-unfollow',
             data: {
                 action: itemState.followStatus.toLowerCase(),
                 currentUserId: getUserId(),
@@ -74,8 +75,8 @@ export default function BlogCard({ handleMenu, item }) {
                 ...itemState,
                 comments: parsedComments,
             });
+            setVisibleComments(parsedComments?parsedComments.slice(0, Math.min(visibleCommentsCount, parsedComments.length)):[]);
         }
-        setVisibleComments(parsedComments?.slice(0, Math.min(visibleCommentsCount, parsedComments.length)));
         setShowCommentInput(!showCommentInput);
     }
 
@@ -86,7 +87,7 @@ export default function BlogCard({ handleMenu, item }) {
     const onCommentPost = (event) => {
         axios({
             method: 'post',
-            url: 'https://ahulfo14r5.execute-api.us-east-1.amazonaws.com/comment/' + itemState.blog_id,
+            url: hostUrl + '/comment/' + itemState.blog_id,
             data: {
                 userId: getUserId(),
                 comment: commentContent
@@ -96,13 +97,12 @@ export default function BlogCard({ handleMenu, item }) {
             }
         }).then(res => {
             setCommentContent("");
-            const parsedComments = itemState.comments.push(res.data);
+            const parsedComments = parseAndSortComments(itemState.comments? itemState.comments.push(res.data) : [res.data]);
             setItemState({
                 ...itemState,
                 comments_count: res.data.comments_count,
-                comments: itemState.comments.push(res.data),
+                comments: parsedComments,
             });
-            console.log(parsedComments);
             setVisibleComments(parsedComments?.slice(0, Math.min(visibleCommentsCount, parsedComments.length)));
         }).catch(err => {
             console.error(err);
@@ -121,7 +121,7 @@ export default function BlogCard({ handleMenu, item }) {
                 comment: comment.comment
             }
         });
-        parsedComments.sort((a, b) => new Date(b.comment_time).getTime() - new Date(a.comment_time).getTime());
+        comments.sort((a, b) => new Date(b.comment_time).getTime() - new Date(a.comment_time).getTime());
         return parsedComments;
     }
 

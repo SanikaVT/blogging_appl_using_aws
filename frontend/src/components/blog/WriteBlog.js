@@ -7,6 +7,7 @@ import axios from 'axios';
 import { useNavigate } from "react-router-dom";
 import { getJwtToken, getUserId } from "../../localStorage";
 import './styles.css'
+import hostUrl from "../../constants";
 
 export default function WriteBlog() {
   const navigate = useNavigate();
@@ -56,7 +57,7 @@ export default function WriteBlog() {
       try {
         const res = await axios({
           method: 'post',
-          url: 'https://ahulfo14r5.execute-api.us-east-1.amazonaws.com/image',
+          url: hostUrl + '/image',
           data: {
             file: image,
             key: getUserId() + '_' + Date.now(),
@@ -73,7 +74,7 @@ export default function WriteBlog() {
 
     axios({
       method: 'post',
-      url: 'https://ahulfo14r5.execute-api.us-east-1.amazonaws.com/postBlog',
+      url: hostUrl + '/postBlog',
       data: {
         title: data.get("title"),
         content: data.get("content"),
