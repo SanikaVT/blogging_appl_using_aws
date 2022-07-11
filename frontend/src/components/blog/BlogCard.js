@@ -97,7 +97,7 @@ export default function BlogCard({ handleMenu, item }) {
             }
         }).then(res => {
             setCommentContent("");
-            const parsedComments = parseAndSortComments(itemState.comments? itemState.comments.push(res.data) : [res.data]);
+            const parsedComments = parseAndSortComments(res.data.comments);
             setItemState({
                 ...itemState,
                 comments_count: res.data.comments_count,
