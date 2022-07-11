@@ -9,14 +9,16 @@ import { getJwtToken, getUserId } from '../../localStorage';
 export default function Blog() {
 
   const [anchorEl, setAnchorEl] = React.useState(null);
+  const [blogId, setBlogId] = React.useState(null);
   const open = Boolean(anchorEl);
 
   const renderBlogs = (item) => {
-    return (<BlogCard key={item} item={item} handleMenu={handleMenu} />)
+    return (<BlogCard key={item.blog_id} item={item} handleMenu={handleMenu} />)
   }
 
-  const handleMenu = (event, post) => {
+  const handleMenu = (event, id) => {
     setAnchorEl(event.currentTarget);
+    setBlogId(id);
   };
 
   const handleClose = () => {
@@ -28,6 +30,17 @@ export default function Blog() {
   }
 
   const handleDelete = () => {
+    console.log(blogId);
+    axios({
+      method: 'delete',
+      url: 'https://ahulfo14r5.execute-api.us-east-1.amazonaws.com/deleteBlog/' + blogId,
+      headers: {
+        Authorization: getJwtToken()
+      }
+    }).then((res) => {
+      console.log(res);
+    })
+    setBlogId(null)
     handleClose();
   }
 
@@ -49,9 +62,9 @@ export default function Blog() {
     }).catch(err => {
       console.log(err)
     });
-  }, [])
+  }, [blogId])
 
-  const addFollowStatus = (loggedInUserId, blogs)  => {
+  const addFollowStatus = (loggedInUserId, blogs) => {
     if (!blogs || blogs.length === 0) {
       return blogs;
     }

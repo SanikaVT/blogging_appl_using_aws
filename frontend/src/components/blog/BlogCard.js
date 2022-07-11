@@ -75,7 +75,7 @@ export default function BlogCard({ handleMenu, item }) {
                     >
                         {followStatus}
                     </Button>
-                    <IconButton onClick={handleMenu}>
+                    <IconButton onClick={(event) => handleMenu(event, item.blog_id)}>
                         <MoreVertIcon />
                     </IconButton>
                 </Stack>
@@ -92,7 +92,7 @@ export default function BlogCard({ handleMenu, item }) {
                 {
                     item.images.length != 0 &&
                     item.images.map((image, index) => (
-                        <ImageListItem sx={{ margin: '5px' }}>
+                        <ImageListItem sx={{ margin: '5px' }} key={index}>
                             <img
                                 src={`${image.url}?fit=crop&auto=format`}
                                 loading="lazy"
@@ -108,7 +108,7 @@ export default function BlogCard({ handleMenu, item }) {
             </Typography>
             <Stack direction="row" sx={{ alignItems: "center" }}>
                 <IconButton onClick={() => likeBlog(itemState.blog_id)} >
-                    {(isLiked) ? <FavoriteIcon sx={{ color: "red", mr: "2px" }} variant="contained"/> : <FavoriteBorderIcon/>}
+                    {(isLiked) ? <FavoriteIcon sx={{ color: "red", mr: "2px" }} variant="contained" /> : <FavoriteBorderIcon />}
                     <Typography variant="body2">{itemState.likes_count}</Typography>
                 </IconButton>
             </Stack>
