@@ -211,7 +211,14 @@ export default function BlogCard({ handleMenu, item }) {
                             onPostComment={onCommentPost} />
                         <Stack sx={{ mt: '25px' }} direction="column" spacing={2}>
                             {generateCommentsList()}
-                            <Typography onClick={onLoadMoreComments} variant="button">Load more comments</Typography>
+                            <Typography sx={{
+                                ':hover': {
+                                    cursor: 'pointer',
+                                    backgroundColor: '#edebed'
+                                },
+                                fontSize: '12px',
+                                textTransform: 'lowercase'
+                            }} onClick={onLoadMoreComments} variant="button">load more comments</Typography>
                         </Stack>
                     </> :
                     <></>
