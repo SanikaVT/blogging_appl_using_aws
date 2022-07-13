@@ -1,0 +1,13 @@
+image: node:latest
+
+stages:
+    - build
+
+build:
+    stage: build
+    before_script:
+        - docker info
+    script:
+        - docker build -t grp-21-frontend .
+    only:
+        - ci-cd
