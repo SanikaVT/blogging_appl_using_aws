@@ -28,6 +28,7 @@ build:
         # - yum install -y amazon-linux-extras
         # - pip3 install --user awscli
         - docker --version
+        - sudo service docker start
         - aws --version
     script:
         - pwd
