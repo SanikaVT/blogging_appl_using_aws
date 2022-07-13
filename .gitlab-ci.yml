@@ -7,8 +7,8 @@ variables:
   APP_NAME: grp-21-frontend
   DOCKER_HOST: tcp://docker:2375
 
-services:
-  - docker:20.10.16-dind
+# services:
+#   - docker:20.10.16-dind
 
 stages:
     - build
@@ -18,7 +18,7 @@ build:
     services:
       - docker:dind
     before_script:
-        - docker info
+        # - docker info
         - aws --version
     script:
         - pwd
