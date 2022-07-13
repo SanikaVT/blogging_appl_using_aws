@@ -32,6 +32,6 @@ build:
         - aws configure set default.region us-east-1
         - aws ecr get-login-password | docker login --username AWS --password-stdin $REGISTRY
         - docker push $REGISTRY/$APP_NAME:latest
-        - aws elasticbeanstalk rebuild-environment --environment-name 
+        - aws elasticbeanstalk rebuild-environment --environment-name $BEANSTALK_ENVIRONMENT_NAME
     only:
         - ci-cd
