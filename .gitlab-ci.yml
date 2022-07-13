@@ -1,4 +1,14 @@
-image: docker:20.10.16
+runners:
+  config: |
+    [[runners]]
+      [runners.kubernetes]
+        image = "ubuntu:20.04"
+        privileged = true
+      [[runners.kubernetes.volumes.empty_dir]]
+        name = "docker-certs"
+        mount_path = "/certs/client"
+        medium = "Memory"
+image: docker:latest
 
 variables:
   DOCKER_TLS_CERTDIR: ""
@@ -6,7 +16,7 @@ variables:
   REGISTRY: 294727153669.dkr.ecr.us-east-1.amazonaws.com
   AWS_DEFAULT_REGION: us-east-1
   APP_NAME: grp-21-frontend
-  DOCKER_HOST: tcp://localhost:2375
+  DOCKER_HOST: tcp://docker:2375
 
 # services:
 #   - docker:20.10.16-dind
