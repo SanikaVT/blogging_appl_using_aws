@@ -28,7 +28,7 @@ build:
         # - yum install -y amazon-linux-extras
         # - pip3 install --user awscli
         - docker --version
-        - systemctl start docker.service
+        # - systemctl start docker.service
         # systemctl docker start
         - aws --version
     script:
