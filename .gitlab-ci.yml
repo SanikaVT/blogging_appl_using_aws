@@ -16,13 +16,17 @@ stages:
 
 build:
     stage: build
-    image: docker:latest
+    image:
+      - name: amazon/aws-cli
+      - entrypoint: [""]
     services:
       - docker:dind
+    tags:
+      - dalfcs_gitlab_docker_ci
     before_script:
-        # - amazon-linux-extras install docker
-        - yum install -y amazon-linux-extras
-        - pip3 install --user awscli
+        - amazon-linux-extras install docker
+        # - yum install -y amazon-linux-extras
+        # - pip3 install --user awscli
         - docker --version
         - aws --version
     script:
