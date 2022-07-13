@@ -1,4 +1,10 @@
-image: node:latest
+image: docker:20.10.16
+
+variables:
+  DOCKER_TLS_CERTDIR: "/certs"
+
+services:
+  - docker:20.10.16-dind
 
 stages:
     - build
@@ -6,7 +12,6 @@ stages:
 build:
     stage: build
     before_script:
-        - 'command -v ssh-agent >/dev/null || (apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin)'
         - docker info
     script:
         - docker build -t grp-21-frontend .
