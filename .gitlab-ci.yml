@@ -16,8 +16,6 @@ stages:
 
 build:
     stage: build
-    tags:
-      - ugrad
     image: 
       name: amazon/aws-cli
       entrypoint: [""]
