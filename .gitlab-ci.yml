@@ -1,5 +1,3 @@
-# image: docker:latest
-
 variables:
   DOCKER_TLS_CERTDIR: ""
   # DOCKER_TLS_CERTDIR: "/certs"
@@ -8,9 +6,6 @@ variables:
   APP_NAME: grp-21-frontend
   DOCKER_HOST: tcp://docker:2375
   SESSION_TOKEN: $AWS_SESSION_TOKEN
-
-# services:
-#   - docker:dind
 
 stages:
     - build
@@ -26,16 +21,10 @@ build:
       - dalfcs_docker_kvm
     before_script:
         - amazon-linux-extras install docker
-        # - yum install -y amazon-linux-extras
-        # - pip3 install --user awscli
         - docker --version
-        # - systemctl start docker.service
-        # systemctl docker start
         - aws --version
     script:
-        - pwd
         - cd ./frontend
-        - pwd
         - docker build -t $REGISTRY/$APP_NAME:latest .
         - aws configure set aws_session_token $SESSION_TOKEN
         - aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
@@ -43,5 +32,6 @@ build:
         - aws configure set default.region us-east-1
         - aws ecr get-login-password | docker login --username AWS --password-stdin $REGISTRY
         - docker push $REGISTRY/$APP_NAME:latest
+        - aws elasticbeanstalk rebuild-environment --environment-name 
     only:
         - ci-cd
