@@ -21,9 +21,12 @@ build:
     services:
       - docker:dind
     before_script:
-        # - docker info
+        - amazon-linux-extras install docker
+        - docker --version
         - aws --version
     script:
+        - pwd
+        - cd ./frontend
         - pwd
         - docker build -t $DOCKER_REGISTRY/$APP_NAME:latest .
         - aws ecr get-login-password | docker login --username AWS --password-stdin $DOCKER_REGISTRY
