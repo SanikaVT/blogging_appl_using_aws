@@ -1,8 +1,8 @@
 image: docker:latest
 
 variables:
-  # DOCKER_TLS_CERTDIR: ""
-  DOCKER_TLS_CERTDIR: "/certs"
+  DOCKER_TLS_CERTDIR: ""
+  # DOCKER_TLS_CERTDIR: "/certs"
   REGISTRY: 294727153669.dkr.ecr.us-east-1.amazonaws.com
   AWS_DEFAULT_REGION: us-east-1
   APP_NAME: grp-21-frontend
@@ -16,13 +16,13 @@ stages:
 
 build:
     stage: build
-    image: 
-      name: amazon/aws-cli
-      entrypoint: [""]
+    image: docker:latest
     services:
       - docker:dind
     before_script:
-        - amazon-linux-extras install docker
+        # - amazon-linux-extras install docker
+        - yum install -y amazon-linux-extras
+        - pip3 install --user awscli
         - docker --version
         - aws --version
     script:
