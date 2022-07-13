@@ -1,0 +1,38 @@
+variables:
+  DOCKER_TLS_CERTDIR: ""
+  # DOCKER_TLS_CERTDIR: "/certs"
+  REGISTRY: 294727153669.dkr.ecr.us-east-1.amazonaws.com
+  AWS_DEFAULT_REGION: us-east-1
+  APP_NAME: grp-21-frontend
+  DOCKER_HOST: tcp://docker:2375
+  SESSION_TOKEN: $AWS_SESSION_TOKEN
+
+stages:
+    - build
+
+build:
+    stage: build
+    image:
+      name: amazon/aws-cli
+      entrypoint: [""]
+    services:
+      - docker:dind
+    tags:
+      - dalfcs_docker_kvm
+    before_script:
+        - amazon-linux-extras install docker
+        - docker --version
+        - aws --version
+    script:
+        - cd ./frontend
+        - docker build -t $REGISTRY/$APP_NAME:latest .
+        - aws configure set aws_session_token $SESSION_TOKEN
+        - aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+        - aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+        - aws configure set default.region us-east-1
+        - aws ecr get-login-password | docker login --username AWS --password-stdin $REGISTRY
+        - docker push $REGISTRY/$APP_NAME:latest
+        - aws elasticbeanstalk create-environment --application-name $BEANSTALK_APPLICATION_NAME --template-name frontend-env-configuration --version-label v0.0.1 --environment-name grp-21-frontend-env
+        # - aws elasticbeanstalk rebuild-environment --environment-name $BEANSTALK_ENVIRONMENT_NAME
+    only:
+        - ci-cd
