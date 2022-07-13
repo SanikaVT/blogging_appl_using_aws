@@ -1,0 +1,165 @@
+{
+	"Resources": {
+		"DDBUser": {
+			"Type": "AWS::DynamoDB::Table",
+			"Properties": {
+				"AttributeDefinitions": [
+					{
+						"AttributeName": "user_id",
+						"AttributeType": "S"
+					}
+				],
+				"BillingMode": "PROVISIONED",
+				"KeySchema": [
+					{
+						"AttributeName": "user_id",
+						"KeyType": "HASH"
+					}
+				],
+				"TableClass": "STANDARD",
+				"TableName": "User",
+				"ProvisionedThroughput": {
+					"ReadCapacityUnits": 1,
+					"WriteCapacityUnits": 1
+				}
+			}
+		},
+		"PostConfirmationLambda": {
+			"Type": "AWS::Lambda::Function",
+			"Properties": {
+				"FunctionName": "PostConfirmation",
+				"Description": "Lambda to enter user details into DynamoDB post user confirms the email",
+				"Role": "arn:aws:iam::180720626277:role/LabRole",
+				"Handler": "index.handler",
+				"Runtime": "nodejs16.x",
+				"Timeout": "10",
+				"Code": {
+					"ZipFile": {
+						"Fn::Join": [
+							"",
+							[
+								"\nvar aws = require('aws-sdk');",
+								"\nvar ddb = new aws.DynamoDB();",
+								"\nexports.handler = async (event, context) => {",
+								"\n   console.log('Request from event is: ', event.request);",
+								"\n   let date = new Date();",
+								"\n   if (event.request.userAttributes.sub) {",
+								"\n      let params = {",
+								"\n         Item: {",
+								"\n            'user_id': {S: event.request.userAttributes.sub},",
+								"\n            'followers_count': 0,",
+								"\n            'following_count': 0,",
+								"\n            'user': {",
+								"\n               M: {",
+								"\n                  'firstName': {S: event.request.userAttributes.given_name},",
+								"\n                  'lastName': {S: event.request.userAttributes.family_name},",
+								"\n                  'phoneNumber': {S: event.request.userAttributes.phone_number},",
+								"\n                  'email': {S: event.request.userAttributes.email}",
+								"\n               }",
+								"\n            },",
+								"\n            'timestamps': {",
+								"\n               M: {",
+								"\n                  'createdAt': {S: date.toISOString()},",
+								"\n                  'updatedAt': {S: date.toISOString()},",
+								"\n               }",
+								"\n            }",
+								"\n         },",
+								"\n         TableName: 'user'",
+								"\n      }",
+								"\n      try {",
+								"\n          await ddb.putItem(params).promise()",
+								"\n          console.log('Success')",
+								"\n      } catch (err) {",
+								"\n          console.log('Error', err)",
+								"\n      }",
+								"\n      console.log('Success: Everything executed correctly')",
+								"\n      context.done(null, event)",
+								"\n   } else {",
+								"\n      console.log('Error: Nothing was written to DynamoDB')",
+								"\n      context.done(null, event)",
+								"\n   }",
+								"\n};"
+							]
+						]
+					}
+				}
+			}
+		},
+		"Cognito": {
+			"Type": "AWS::Cognito::UserPool",
+			"Properties": {
+				"UserPoolName": "CFBlogging",
+				"AccountRecoverySetting": {
+					"RecoveryMechanisms": [
+						{
+							"Name": "verified_email",
+							"Priority": 1
+						}
+					]
+				},
+				"AdminCreateUserConfig": {
+					"AllowAdminCreateUserOnly": "false"
+				},
+				"Schema": [
+					{
+						"AttributeDataType": "String",
+						"Name": "email",
+						"Required": "True"
+					},
+					{
+						"AttributeDataType": "String",
+						"Name": "family_name",
+						"Required": "True"
+					},
+					{
+						"AttributeDataType": "String",
+						"Name": "given_name",
+						"Required": "True"
+					},
+					{
+						"AttributeDataType": "String",
+						"Name": "phone_number",
+						"Required": "True"
+					}
+				],
+				"AutoVerifiedAttributes": [
+					"email"
+				],
+				"DeviceConfiguration": {
+					"DeviceOnlyRememberedOnUserPrompt": true
+				},
+				"LambdaConfig": {
+					"PostConfirmation": {
+						"Fn::GetAtt": [
+							"PostConfirmationLambda",
+							"Arn"
+						]
+					}
+				},
+				"Policies": {
+					"PasswordPolicy": {
+						"MinimumLength": 8,
+						"RequireLowercase": "True",
+						"RequireNumbers": "True",
+						"RequireSymbols": "True",
+						"RequireUppercase": "True"
+					}
+				},
+				"UsernameAttributes": [
+					"email"
+				],
+				"UsernameConfiguration": {
+					"CaseSensitive": "False"
+				},
+				"VerificationMessageTemplate": {
+					"DefaultEmailOption": "CONFIRM_WITH_LINK",
+					"EmailMessageByLink": "Please click the link below to verify your email address. {##Verify Email##} ",
+					"EmailSubjectByLink": "Your verification link"
+				}
+			},
+			"DependsOn": [
+				"PostConfirmationLambda"
+			]
+		}
+	}
+}
