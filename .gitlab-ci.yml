@@ -1,21 +1,15 @@
-runners:
-  config: |
-    [[runners]]
-      [runners.kubernetes]
-        privileged = true
-
 image: docker:latest
 
 variables:
-  DOCKER_TLS_CERTDIR: ""
-  # DOCKER_TLS_CERTDIR: "/certs"
+  # DOCKER_TLS_CERTDIR: ""
+  DOCKER_TLS_CERTDIR: "/certs"
   REGISTRY: 294727153669.dkr.ecr.us-east-1.amazonaws.com
   AWS_DEFAULT_REGION: us-east-1
   APP_NAME: grp-21-frontend
   DOCKER_HOST: tcp://docker:2375
 
-# services:
-#   - docker:20.10.16-dind
+services:
+  - docker:dind
 
 stages:
     - build
