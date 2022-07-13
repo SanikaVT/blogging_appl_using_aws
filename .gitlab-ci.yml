@@ -1,4 +1,4 @@
-image: docker:latest
+# image: docker:latest
 
 variables:
   DOCKER_TLS_CERTDIR: ""
@@ -6,10 +6,10 @@ variables:
   REGISTRY: 294727153669.dkr.ecr.us-east-1.amazonaws.com
   AWS_DEFAULT_REGION: us-east-1
   APP_NAME: grp-21-frontend
-  DOCKER_HOST: tcp://docker:2376
+  DOCKER_HOST: tcp://docker:2375
 
-services:
-  - docker:dind
+# services:
+#   - docker:dind
 
 stages:
     - build
