@@ -28,8 +28,8 @@ build:
         - pwd
         - cd ./frontend
         - pwd
-        - docker build -t $DOCKER_REGISTRY/$APP_NAME:latest .
-        - aws ecr get-login-password | docker login --username AWS --password-stdin $DOCKER_REGISTRY
-        - docker push $DOCKER_REGISTRY/$APP_NAME:latest
+        - docker build -t $REGISTRY/$APP_NAME:latest .
+        - aws ecr get-login-password | docker login --username AWS --password-stdin $REGISTRY
+        - docker push $REGISTRY/$APP_NAME:latest
     only:
         - ci-cd
