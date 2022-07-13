@@ -7,6 +7,7 @@ variables:
   AWS_DEFAULT_REGION: us-east-1
   APP_NAME: grp-21-frontend
   DOCKER_HOST: tcp://docker:2375
+  SESSION_TOKEN: $AWS_SESSION_TOKEN
 
 # services:
 #   - docker:dind
@@ -36,6 +37,7 @@ build:
         - cd ./frontend
         - pwd
         - docker build -t $REGISTRY/$APP_NAME:latest .
+        - aws configure aws_session_token $SESSION_TOKEN
         - aws ecr get-login-password | docker login --username AWS --password-stdin $REGISTRY
         - docker push $REGISTRY/$APP_NAME:latest
     only:
