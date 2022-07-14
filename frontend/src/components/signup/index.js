@@ -12,6 +12,9 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 import UserPool from "../auth/UserPool";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from 'axios';
+import { getJwtToken, getUserId } from "../../localStorage";
+import hostUrl from '../../constants';
 const theme = createTheme();
 
 const signUpVaraibles = {

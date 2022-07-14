@@ -16,6 +16,7 @@ import axios from "axios";
 import CommentInput from "../commentInput";
 import SingleComment from "../SingleComment";
 import hostUrl from "../../constants";
+import topicArnPrefix from "../../constants";
 
 export default function BlogCard({ handleMenu, item }) {
   const [itemState, setItemState] = React.useState(item);
