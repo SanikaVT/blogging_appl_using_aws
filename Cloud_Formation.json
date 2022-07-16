@@ -1,9 +1,9 @@
 {
 	"Resources": {
 		"DDBUser": {
-			"TableName": "user",
 			"Type": "AWS::DynamoDB::Table",
 			"Properties": {
+				"TableName": "user",
 				"AttributeDefinitions": [
 					{
 						"AttributeName": "user_id",
@@ -26,8 +26,8 @@
 		},
 		"DDBBlog": {
 			"Type": "AWS::DynamoDB::Table",
-			"TableName": "blog",
 			"Properties": {
+				"TableName": "blog",
 				"AttributeDefinitions": [
 					{
 						"AttributeName": "blog_id",
