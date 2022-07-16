@@ -26,7 +26,7 @@
 		},
 		"DDBBlog": {
 			"Type": "AWS::DynamoDB::Table",
-			"TableName": "User",
+			"TableName": "blog",
 			"Properties": {
 				"AttributeDefinitions": [
 					{
