@@ -1,6 +1,7 @@
 {
 	"Resources": {
 		"DDBUser": {
+			"TableName": "user",
 			"Type": "AWS::DynamoDB::Table",
 			"Properties": {
 				"AttributeDefinitions": [
@@ -17,7 +18,30 @@
 					}
 				],
 				"TableClass": "STANDARD",
-				"TableName": "User",
+				"ProvisionedThroughput": {
+					"ReadCapacityUnits": 1,
+					"WriteCapacityUnits": 1
+				}
+			}
+		},
+		"DDBBlog": {
+			"Type": "AWS::DynamoDB::Table",
+			"TableName": "User",
+			"Properties": {
+				"AttributeDefinitions": [
+					{
+						"AttributeName": "blog_id",
+						"AttributeType": "S"
+					}
+				],
+				"BillingMode": "PROVISIONED",
+				"KeySchema": [
+					{
+						"AttributeName": "blog_id",
+						"KeyType": "HASH"
+					}
+				],
+				"TableClass": "STANDARD",
 				"ProvisionedThroughput": {
 					"ReadCapacityUnits": 1,
 					"WriteCapacityUnits": 1
@@ -160,6 +184,79 @@
 			"DependsOn": [
 				"PostConfirmationLambda"
 			]
+		},
+		"Domain": {
+			"Type": "AWS::Cognito::UserPoolDomain",
+			"Properties": {
+				"Domain": "blog",
+				"UserPoolId": {
+					"Fn::GetAtt": [
+						"Cognito",
+						"Arn"
+					]
+				}
+			},
+			"DependsOn": [
+				"Cognito"
+			]
+		},
+		"AppClient": {
+			"Type": "AWS::Cognito::UserPoolClient",
+			"Properties": {
+				"ClientName": "blog",
+				"GenerateSecret": "False",
+				"UserPoolId": {
+					"Fn::GetAtt": [
+						"Cognito",
+						"Arn"
+					]
+				}
+			},
+			"DependsOn": [
+				"Cognito"
+			]
+		},
+		"DeleteBlogLambda": {
+			"Type": "AWS::Lambda::Function",
+			"Properties": {
+				"FunctionName": "deleteBlog",
+				"Description": "Lambda to delete a blog from DynamoDB",
+				"Role": "arn:aws:iam::180720626277:role/LabRole",
+				"Handler": "index.handler",
+				"Runtime": "nodejs16.x",
+				"Timeout": "10",
+				"Code": {
+					"ZipFile": {
+						"Fn::Join": [
+							"",
+							[
+								"\nconst AWS = require('aws-sdk');",
+								"\nconst dynamoClient = new AWS.DynamoDB.DocumentClient();",
+								"\nexports.handler = async (event) => {",
+								"\n    const blogId = event.pathParameters.blogId;",
+								"\n    console.log(blogId);",
+								"\n    const blogParams = {",
+								"\n        TableName: 'blog',",
+								"\n        Key: {",
+								"\n            blog_id: blogId",
+								"\n        }",
+								"\n    };",
+								"\n    try {",
+								"\n        await dynamoClient.delete(blogParams).promise();",
+								"\n        const response = {",
+								"\n            statusCode: 200,",
+								"\n        };",
+								"\n        response.body = JSON.stringify({ message: 'Blog deleted successfully' });",
+								"\n        return response;",
+								"\n    } catch (err) {",
+								"\n        console.log(err);",
+								"\n    }",
+								"\n};"
+							]
+						]
+					}
+				}
+			}
 		}
 	}
 }
