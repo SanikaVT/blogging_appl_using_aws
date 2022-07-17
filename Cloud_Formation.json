@@ -192,7 +192,7 @@
 				"UserPoolId": {
 					"Fn::GetAtt": [
 						"Cognito",
-						"Arn"
+						"PoolId"
 					]
 				}
 			},
@@ -208,7 +208,7 @@
 				"UserPoolId": {
 					"Fn::GetAtt": [
 						"Cognito",
-						"Arn"
+						"PoolId"
 					]
 				}
 			},
