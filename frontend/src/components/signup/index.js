@@ -8,10 +8,13 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-
+import axios from "axios";
 import UserPool from "../auth/UserPool";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import hostUrl from "../../constants";
+import { getJwtToken, getUserId, getFullName } from "../../localStorage";
+
 const theme = createTheme();
 
 const signUpVaraibles = {

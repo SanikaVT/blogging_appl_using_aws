@@ -16,6 +16,7 @@ import axios from "axios";
 import CommentInput from "../commentInput";
 import SingleComment from "../SingleComment";
 import hostUrl from "../../constants";
+import topicArnPrefix from "../../constants";
 
 export default function BlogCard({ handleMenu, item }) {
   const [itemState, setItemState] = React.useState(item);
@@ -35,7 +36,7 @@ export default function BlogCard({ handleMenu, item }) {
       data: {
         Message:
           "Hi " + getFullName() + "! You have received a like on your blog!",
-        Subject: "Someone liked you blog!",
+        Subject: "Someone liked your blog!",
         TopicArn: topicArnPrefix + ":" + getUserId(),
       },
       headers: {
@@ -46,7 +47,7 @@ export default function BlogCard({ handleMenu, item }) {
       .catch((err) => {
         console.log("Error while calling Send Notification api: ", err);
       });
-      
+
     axios({
       method: "put",
       url: hostUrl + "/likeBlog",
