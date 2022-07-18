@@ -5,7 +5,7 @@ import { Container } from "@mui/system";
 import { Menu, MenuItem } from '@mui/material'
 import axios from 'axios';
 import { getJwtToken, getUserId } from '../../localStorage';
-import hostUrl from '../../constants';
+import { hostUrl } from '../../constants';
 
 export default function Blog() {
 

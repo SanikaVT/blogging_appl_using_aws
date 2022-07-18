@@ -1,8 +1,22 @@
 {
+	"Parameters": {
+        "IamRole": {
+            "Type": "String",
+            "Description": "Provide ARN for the LabRole in AWS."
+        },
+		"domainName": {
+			"Type": "String",
+			"Description": "Domain name of the cognito user pool.",
+			"AllowedPattern": "^[a-z0-9](?:[a-z0-9\\-]{0,61}[a-z0-9])?$",
+			"MaxLength": 63,
+			"MinLength": 1
+		}
+    },
 	"Resources": {
 		"DDBUser": {
 			"Type": "AWS::DynamoDB::Table",
 			"Properties": {
+				"TableName": "user",
 				"AttributeDefinitions": [
 					{
 						"AttributeName": "user_id",
@@ -17,7 +31,30 @@
 					}
 				],
 				"TableClass": "STANDARD",
-				"TableName": "User",
+				"ProvisionedThroughput": {
+					"ReadCapacityUnits": 1,
+					"WriteCapacityUnits": 1
+				}
+			}
+		},
+		"DDBBlog": {
+			"Type": "AWS::DynamoDB::Table",
+			"Properties": {
+				"TableName": "blog",
+				"AttributeDefinitions": [
+					{
+						"AttributeName": "blog_id",
+						"AttributeType": "S"
+					}
+				],
+				"BillingMode": "PROVISIONED",
+				"KeySchema": [
+					{
+						"AttributeName": "blog_id",
+						"KeyType": "HASH"
+					}
+				],
+				"TableClass": "STANDARD",
 				"ProvisionedThroughput": {
 					"ReadCapacityUnits": 1,
 					"WriteCapacityUnits": 1
@@ -29,7 +66,7 @@
 			"Properties": {
 				"FunctionName": "PostConfirmation",
 				"Description": "Lambda to enter user details into DynamoDB post user confirms the email",
-				"Role": "arn:aws:iam::180720626277:role/LabRole",
+				"Role": { "Ref": "IamRole"},
 				"Handler": "index.handler",
 				"Runtime": "nodejs16.x",
 				"Timeout": "10",
@@ -160,6 +197,502 @@
 			"DependsOn": [
 				"PostConfirmationLambda"
 			]
-		}
+		},
+		"Domain": {
+			"Type": "AWS::Cognito::UserPoolDomain",
+			"Properties": {
+				"Domain": {"Ref": "domainName"},
+				"UserPoolId": {
+					"Fn::Select": [
+						"1",
+						{
+							"Fn::Split":[
+								"/",
+								{
+									"Fn::GetAtt": [
+										"Cognito",
+										"Arn"
+									]
+								}
+							]
+						}
+					]
+				}
+			},
+			"DependsOn": [
+				"Cognito"
+			]
+		},
+		"AppClient": {
+			"Type": "AWS::Cognito::UserPoolClient",
+			"Properties": {
+				"ClientName": "blog",
+				"GenerateSecret": "False",
+				"UserPoolId": {
+					"Fn::Select": [
+						"1",
+						{
+							"Fn::Split":[
+								"/",
+								{
+									"Fn::GetAtt": [
+										"Cognito",
+										"Arn"
+									]
+								}
+							]
+						}
+					]
+				}
+			},
+			"DependsOn": [
+				"Cognito"
+			]
+		},
+		"DeleteBlogLambda": {
+			"Type": "AWS::Lambda::Function",
+			"Properties": {
+				"FunctionName": "deleteBlogCf",
+				"Description": "Lambda to delete a blog from DynamoDB",
+				"Role": { "Ref": "IamRole"},
+				"Handler": "index.handler",
+				"Runtime": "nodejs16.x",
+				"Timeout": "10",
+				"Code": {
+					"ZipFile": {
+						"Fn::Join": [
+							"",
+							[
+								"\nconst AWS = require('aws-sdk');",
+								"\nconst dynamoClient = new AWS.DynamoDB.DocumentClient();",
+								"\nexports.handler = async (event) => {",
+								"\n    const blogId = event.pathParameters.blogId;",
+								"\n    console.log(blogId);",
+								"\n    const blogParams = {",
+								"\n        TableName: 'blog',",
+								"\n        Key: {",
+								"\n            blog_id: blogId",
+								"\n        }",
+								"\n    };",
+								"\n    try {",
+								"\n        await dynamoClient.delete(blogParams).promise();",
+								"\n        const response = {",
+								"\n            statusCode: 200,",
+								"\n        };",
+								"\n        response.body = JSON.stringify({ message: 'Blog deleted successfully' });",
+								"\n        return response;",
+								"\n    } catch (err) {",
+								"\n        console.log(err);",
+								"\n    }",
+								"\n};"
+							]
+						]
+					}
+				}
+			},
+			"DependsOn": ["DDBUser", "DDBBlog"]
+		},
+		"followOrUnfollowLambda": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "FunctionName": "followOrUnfollowLambdaCf",
+                "Description": "Lambda to follow/unfollow a user",
+                "Role": { "Ref": "IamRole"},
+                "Handler": "index.handler",
+                "Runtime": "nodejs16.x",
+                "Timeout": "10",
+                "Code": {
+                    "S3Bucket":"lambda-zip-files-for-cf",
+                    "S3Key": "followUnfollowCode/index.zip"
+                }
+            },
+			"DependsOn": ["DDBUser", "DDBBlog"]
+        },
+        "getAllBlogsLambda": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "FunctionName": "getAllBlogsLambdaCf",
+                "Description": "Lambda to get all blog from DynamoDB",
+                "Role": { "Ref": "IamRole"},
+                "Handler": "index.handler",
+                "Runtime": "nodejs16.x",
+                "Timeout": "10",
+                "Code": {
+                    "S3Bucket":"lambda-zip-files-for-cf",
+                    "S3Key": "getAllBlogs/index.zip"
+                }
+            },
+			"DependsOn": ["DDBUser", "DDBBlog"]
+        },
+        "likeBlogLambda": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "FunctionName": "likeBlogLambdaCf",
+                "Description": "Lambda to like a blog",
+                "Role": { "Ref": "IamRole"},
+                "Handler": "index.handler",
+                "Runtime": "nodejs16.x",
+                "Timeout": "10",
+                "Code": {
+                    "S3Bucket":"lambda-zip-files-for-cf",
+                    "S3Key": "likeBlog/index.zip"
+                }
+            },
+			"DependsOn": ["DDBUser", "DDBBlog"]
+        },
+        "commentBlogLambda": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "FunctionName": "commentBlogLambdaCf",
+                "Description": "Lambda to add comment on a blog",
+                "Role": { "Ref": "IamRole"},
+                "Handler": "index.handler",
+                "Runtime": "nodejs16.x",
+                "Timeout": "10",
+                "Code": {
+                    "S3Bucket":"lambda-zip-files-for-cf",
+                    "S3Key": "commentBlog/index.zip"
+                }
+            },
+			"DependsOn": ["DDBUser", "DDBBlog"]
+        },
+        "postBlogLambda": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "FunctionName": "postBlogLambdaCf",
+                "Description": "Lambda to upload image to DynamoDB",
+                "Role": {"Ref": "IamRole"},
+                "Handler": "index.handler",
+                "Runtime": "nodejs16.x",
+                "Timeout": "10",
+                "Code": {
+                    "S3Bucket": "lambda-zip-files-for-cf",
+                    "S3Key": "postBlog/index.zip"
+                }
+            },
+			"DependsOn": ["DDBUser", "DDBBlog"]
+        },
+        "cfTestGateway":
+        {
+            "Type": "AWS::ApiGatewayV2::Api",
+            "Properties": {
+                "CorsConfiguration": {
+                    "AllowHeaders": ["*"],
+                    "AllowMethods": ["*"],
+                    "AllowOrigins": ["*"]
+                },
+                "CredentialsArn": { "Ref": "IamRole"},
+                "Description": "This is the backend API gateway for the cloud project",
+                "Name": "cf-test-gateway",
+                "ProtocolType": "HTTP",
+                "RouteKey": "GET /getAllBlogs",
+                "Target": {
+                    "Fn::GetAtt": [
+                        "getAllBlogsLambda",
+                        "Arn"
+                    ]
+                }
+            },
+            "DependsOn": ["DeleteBlogLambda", "followOrUnfollowLambda", "getAllBlogsLambda", "likeBlogLambda", "commentBlogLambda", "postBlogLambda"]
+        },
+        "basicAuthorizer": {
+            "Type": "AWS::ApiGatewayV2::Authorizer",
+            "Properties": {
+                "ApiId": {"Ref": "cfTestGateway"},
+                "AuthorizerType": "JWT",
+                "IdentitySource": ["$request.header.Authorization"],
+                "Name": "Basic-Authorizer",
+                "JwtConfiguration": {
+                    "Audience": ["7gstqtcfpdq4p7e25734lgbclt"],
+                    "Issuer": "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_uYjjKtUgM"
+                }
+            },
+            "DependsOn": ["cfTestGateway"]
+        },
+        "deleteBlogIntegration": {
+            "Type": "AWS::ApiGatewayV2::Integration",
+            "Properties": {
+                "ApiId": {"Ref": "cfTestGateway"},
+                "CredentialsArn": { "Ref": "IamRole"},
+                "IntegrationMethod": "POST",
+                "IntegrationType": "AWS_PROXY",
+                "IntegrationUri": {
+                    "Fn::Join": [
+                        "",
+                        [
+                            "arn:",
+                            {
+                                "Ref": "AWS::Partition"
+                            },
+                            ":apigateway:",
+                            {
+                                "Ref": "AWS::Region"
+                            },
+                            ":lambda:path/2015-03-31/functions/",
+                            {
+                                "Fn::GetAtt": [
+                                    "DeleteBlogLambda",
+                                    "Arn"
+                                ]
+                            },
+                            "/invocations"
+                        ]
+                    ]
+                },
+                "PayloadFormatVersion": "2.0"
+            },
+            "DependsOn": ["cfTestGateway", "basicAuthorizer"]
+        },
+        "deleteBlogRoute": {
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+                "ApiId": {"Ref": "cfTestGateway"},
+                "AuthorizationType": "JWT",
+                "AuthorizerId": {
+                    "Ref": "basicAuthorizer"
+                },
+                "RouteKey": "DELETE /deleteBlog/{blogId}",
+                "Target": {
+                    "Fn::Join": [
+                        "/",
+                        [
+                            "integrations",
+                            {
+                                "Ref": "deleteBlogIntegration"
+                            }
+                        ]
+                    ]
+                }
+            },
+            "DependsOn": ["deleteBlogIntegration"]
+        },
+        "followOrUnfollowIntegration": {
+            "Type": "AWS::ApiGatewayV2::Integration",
+            "Properties": {
+                "ApiId": {"Ref": "cfTestGateway"},
+                "CredentialsArn": { "Ref": "IamRole"},
+                "IntegrationMethod": "POST",
+                "IntegrationType": "AWS_PROXY",
+                "IntegrationUri": {
+                    "Fn::Join": [
+                        "",
+                        [
+                            "arn:",
+                            {
+                                "Ref": "AWS::Partition"
+                            },
+                            ":apigateway:",
+                            {
+                                "Ref": "AWS::Region"
+                            },
+                            ":lambda:path/2015-03-31/functions/",
+                            {
+                                "Fn::GetAtt": [
+                                    "followOrUnfollowLambda",
+                                    "Arn"
+                                ]
+                            },
+                            "/invocations"
+                        ]
+                    ]
+                },
+                "PayloadFormatVersion": "2.0"
+            },
+            "DependsOn": ["cfTestGateway", "basicAuthorizer"]
+        },
+        "followOrUnfollowRoute": {
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+                "ApiId": {"Ref": "cfTestGateway"},
+                "AuthorizationType": "JWT",
+                "AuthorizerId": {
+                    "Ref": "basicAuthorizer"
+                },
+                "RouteKey": "PUT /follow-or-unfollow",
+                "Target": {
+                    "Fn::Join": [
+                        "/",
+                        [
+                            "integrations",
+                            {
+                                "Ref": "followOrUnfollowIntegration"
+                            }
+                        ]
+                    ]
+                }
+            },
+            "DependsOn": ["followOrUnfollowIntegration"]
+        },
+        "likeBlogIntegration": {
+            "Type": "AWS::ApiGatewayV2::Integration",
+            "Properties": {
+                "ApiId": {"Ref": "cfTestGateway"},
+                "CredentialsArn": { "Ref": "IamRole"},
+                "IntegrationMethod": "POST",
+                "IntegrationType": "AWS_PROXY",
+                "IntegrationUri": {
+                    "Fn::Join": [
+                        "",
+                        [
+                            "arn:",
+                            {
+                                "Ref": "AWS::Partition"
+                            },
+                            ":apigateway:",
+                            {
+                                "Ref": "AWS::Region"
+                            },
+                            ":lambda:path/2015-03-31/functions/",
+                            {
+                                "Fn::GetAtt": [
+                                    "likeBlogLambda",
+                                    "Arn"
+                                ]
+                            },
+                            "/invocations"
+                        ]
+                    ]
+                },
+                "PayloadFormatVersion": "2.0"
+            },
+            "DependsOn": ["cfTestGateway"]
+        },
+        "likeBlogRoute": {
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+                "ApiId": {"Ref": "cfTestGateway"},
+                "AuthorizationType": "JWT",
+                "AuthorizerId": {
+                    "Ref": "basicAuthorizer"
+                },
+                "RouteKey": "PUT /likeBlog",
+                "Target": {
+                    "Fn::Join": [
+                        "/",
+                        [
+                            "integrations",
+                            {
+                                "Ref": "likeBlogIntegration"
+                            }
+                        ]
+                    ]
+                }
+            },
+            "DependsOn": ["likeBlogIntegration"]
+        },
+        "commentBlogIntegration": {
+            "Type": "AWS::ApiGatewayV2::Integration",
+            "Properties": {
+                "ApiId": {"Ref": "cfTestGateway"},
+                "CredentialsArn": { "Ref": "IamRole"},
+                "IntegrationMethod": "POST",
+                "IntegrationType": "AWS_PROXY",
+                "IntegrationUri": {
+                    "Fn::Join": [
+                        "",
+                        [
+                            "arn:",
+                            {
+                                "Ref": "AWS::Partition"
+                            },
+                            ":apigateway:",
+                            {
+                                "Ref": "AWS::Region"
+                            },
+                            ":lambda:path/2015-03-31/functions/",
+                            {
+                                "Fn::GetAtt": [
+                                    "commentBlogLambda",
+                                    "Arn"
+                                ]
+                            },
+                            "/invocations"
+                        ]
+                    ]
+                },
+                "PayloadFormatVersion": "2.0"
+            },
+            "DependsOn": ["cfTestGateway", "basicAuthorizer"]
+        },
+        "commentBlogRoute": {
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+                "ApiId": {"Ref": "cfTestGateway"},
+                "AuthorizationType": "JWT",
+                "AuthorizerId": {
+                    "Ref": "basicAuthorizer"
+                },
+                "RouteKey": "POST /comment/{blogId}",
+                "Target": {
+                    "Fn::Join": [
+                        "/",
+                        [
+                            "integrations",
+                            {
+                                "Ref": "commentBlogIntegration"
+                            }
+                        ]
+                    ]
+                }
+            },
+            "DependsOn": ["commentBlogIntegration"]
+        },
+        "postBlogIntegration": {
+            "Type": "AWS::ApiGatewayV2::Integration",
+            "Properties": {
+                "ApiId": {"Ref": "cfTestGateway"},
+                "CredentialsArn": { "Ref": "IamRole"},
+                "IntegrationMethod": "POST",
+                "IntegrationType": "AWS_PROXY",
+                "IntegrationUri": {
+                    "Fn::Join": [
+                        "",
+                        [
+                            "arn:",
+                            {
+                                "Ref": "AWS::Partition"
+                            },
+                            ":apigateway:",
+                            {
+                                "Ref": "AWS::Region"
+                            },
+                            ":lambda:path/2015-03-31/functions/",
+                            {
+                                "Fn::GetAtt": [
+                                    "postBlogLambda",
+                                    "Arn"
+                                ]
+                            },
+                            "/invocations"
+                        ]
+                    ]
+                },
+                "PayloadFormatVersion": "2.0"
+            },
+            "DependsOn": ["cfTestGateway", "basicAuthorizer"]
+        },
+        "postBlogRoute": {
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+                "ApiId": {"Ref": "cfTestGateway"},
+                "AuthorizationType": "JWT",
+                "AuthorizerId": {
+                    "Ref": "basicAuthorizer"
+                },
+                "RouteKey": "POST /postBlog",
+                "Target": {
+                    "Fn::Join": [
+                        "/",
+                        [
+                            "integrations",
+                            {
+                                "Ref": "postBlogIntegration"
+                            }
+                        ]
+                    ]
+                }
+            },
+            "DependsOn": ["postBlogIntegration"]
+        }
 	}
 }

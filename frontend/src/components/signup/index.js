@@ -12,7 +12,7 @@ import axios from "axios";
 import UserPool from "../auth/UserPool";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
+import axios from "axios";
 const theme = createTheme();
 
 const signUpVaraibles = {

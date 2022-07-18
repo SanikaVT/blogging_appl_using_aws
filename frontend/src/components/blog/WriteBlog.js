@@ -16,8 +16,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { getJwtToken, getUserId, getFullName } from "../../localStorage";
 import "./styles.css";
-import hostUrl from "../../constants";
-import topicArnPrefix from "../../constants";
+import { hostUrl, topicArnPrefix } from "../../constants";
 
 export default function WriteBlog() {
   const navigate = useNavigate();
