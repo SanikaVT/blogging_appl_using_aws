@@ -31,24 +31,6 @@ export default function BlogCard({ handleMenu, item }) {
 
   const likeBlog = (blogId) => {
     axios({
-      method: "post",
-      url: hostUrl + "/sendNotification",
-      data: {
-        Message:
-          "Hi " + getFullName() + "! You have received a like on your blog!",
-        Subject: "Someone liked your blog!",
-        TopicArn: topicArnPrefix + ":" + getUserId(),
-      },
-      headers: {
-        Authorization: getJwtToken(),
-      },
-    })
-      .then(() => {})
-      .catch((err) => {
-        console.log("Error while calling Send Notification api: ", err);
-      });
-
-    axios({
       method: "put",
       url: hostUrl + "/likeBlog",
       data: {
@@ -69,6 +51,26 @@ export default function BlogCard({ handleMenu, item }) {
       })
       .catch((err) => {
         console.log("Error while calling like blog API: ", err);
+      });
+
+    axios({
+      method: "post",
+      url: "https://722kqrljfi.execute-api.us-east-1.amazonaws.com/sendEmail",
+      data: {
+        Message:
+          "Hi " + getFullName() + "! You have received a like on your blog!",
+        Subject: "Someone liked your blog!",
+        TopicArn: topicArnPrefix + getUserId(),
+      },
+      headers: {
+        Authorization: getJwtToken(),
+      },
+    })
+      .then(() => {
+        console.log("send Notify");
+      })
+      .catch((err) => {
+        console.log("Error while calling Send Notification api: ", err);
       });
   };
 
