@@ -10,7 +10,21 @@
 			"AllowedPattern": "^[a-z0-9](?:[a-z0-9\\-]{0,61}[a-z0-9])?$",
 			"MaxLength": 63,
 			"MinLength": 1
-		}
+		},
+        "beanstalkApplicationName": {
+            "Type": "String",
+            "Description": "Application name of the beanstalk",
+            "MinLength": 1,
+            "MaxLength": 100
+        },
+        "beanstalkEnvironmentName": {
+            "Type": "String",
+            "Description": "Beanstalk environment name"
+        },
+        "s3BeanstalkBucketName": {
+            "Type": "String",
+            "Description": "S3 Bucket name on where beanstalk code is uploaded"
+        }
     },
 	"Resources": {
 		"DDBUser": {
@@ -360,7 +374,7 @@
             "Type": "AWS::Lambda::Function",
             "Properties": {
                 "FunctionName": "postBlogLambdaCf",
-                "Description": "Lambda to upload image to DynamoDB",
+                "Description": "Lambda to post blog to DynamoDB",
                 "Role": {"Ref": "IamRole"},
                 "Handler": "index.handler",
                 "Runtime": "nodejs16.x",
@@ -693,6 +707,83 @@
                 }
             },
             "DependsOn": ["postBlogIntegration"]
+        },
+        "frontendBeanstalkTest": {
+            "Type": "AWS::ElasticBeanstalk::Application",
+            "Properties": {
+                "ApplicationName": {"Ref": "beanstalkApplicationName"},
+                "Description": "This is elastic beanstalk resource using for serving frontend of our group project."
+            }
+        },
+        "beanstalkApplicationVersionTest": {
+            "Type": "AWS::ElasticBeanstalk::ApplicationVersion",
+            "Properties": {
+                "ApplicationName": {"Ref": "beanstalkApplicationName"},
+                "Description": "First version of the frontend code deployed in beanstalk",
+                "SourceBundle": {
+                    "S3Bucket": {"Ref": "s3BeanstalkBucketName"},
+                    "S3Key": "Dockerrun.aws.json"
+                }
+            },
+            "DependsOn": ["frontendBeanstalkTest"]
+        },
+        "beanstalkEnvConfigurationTemplate": {
+            "Type": "AWS::ElasticBeanstalk::ConfigurationTemplate",
+            "Properties": {
+                "ApplicationName": {"Ref": "beanstalkApplicationName"},
+                "Description": "Beanstalk environment template for frontend group project",
+                "PlatformArn": "arn:aws:elasticbeanstalk:us-east-1::platform/Docker running on 64bit Amazon Linux 2/3.4.17",
+                "OptionSettings": [
+                    {
+                        "Namespace": "aws:autoscaling:launchconfiguration",
+                        "OptionName": "InstanceType",
+                        "Value": "t2.nano"
+                    },
+                    {
+                        "Namespace": "aws:elasticbeanstalk:environment",
+                        "OptionName": "EnvironmentType",
+                        "Value": "SingleInstance"
+                    },
+                    {
+                        "Namespace": "aws:rds:dbinstance",
+                        "OptionName": "HasCoupledDatabase",
+                        "Value": "false"
+                    },
+                    {
+                        "ResourceName": "AWSEBEC2LaunchTemplate",
+                        "Namespace": "aws:autoscaling:launchconfiguration",
+                        "OptionName": "IamInstanceProfile",
+                        "Value": "LabInstanceProfile"
+                    },
+                    {
+                        "Namespace": "aws:ec2:instances",
+                        "OptionName": "SupportedArchitectures",
+                        "Value": "x86_64"
+                    },
+                    {
+                        "Namespace": "aws:elasticbeanstalk:environment",
+                        "OptionName": "ServiceRole",
+                        "Value": {"Ref": "IamRole"}
+                    }
+                ]
+            },
+            "DependsOn": ["beanstalkApplicationVersionTest"]
+        },
+        "beanstalkEvnTest": {
+            "Type": "AWS::ElasticBeanstalk::Environment",
+            "Properties": {
+                "ApplicationName": {"Ref": "beanstalkApplicationName"},
+                "Description": "Environment for deploying the frontend code",
+                "EnvironmentName": {"Ref": "beanstalkEnvironmentName"},
+                "TemplateName": {"Ref": "beanstalkEnvConfigurationTemplate"},
+                "Tier": {
+                    "Name": "WebServer",
+                    "Type": "Standard",
+                    "Version": "1.0"
+                },
+                "VersionLabel": {"Ref": "beanstalkApplicationVersionTest"}
+            },
+            "DependsOn": ["beanstalkApplicationVersionTest", "beanstalkEnvConfigurationTemplate"]
         }
 	}
 }
