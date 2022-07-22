@@ -8,19 +8,39 @@ exports.handler = async (event, context) => {
     if (event.request.userAttributes.sub) {
         let params = {
             Item: {
-                'user_id': { S: event.request.userAttributes.sub },
+                'user_id': {
+                    S: event.request.userAttributes.sub
+                },
+                'followers_count': {
+                    N: '0'
+                },
+                'following_count': {
+                    N: '0'
+                },
                 'user': {
                     M: {
-                        'firstName': { S: event.request.userAttributes.given_name },
-                        'lastName': { S: event.request.userAttributes.family_name },
-                        'phoneNumber': { S: event.request.userAttributes.phone_number },
-                        'email': { S: event.request.userAttributes.email }
+                        'firstName': {
+                            S: event.request.userAttributes.given_name
+                        },
+                        'lastName': {
+                            S: event.request.userAttributes.family_name
+                        },
+                        'phoneNumber': {
+                            S: event.request.userAttributes.phone_number
+                        },
+                        'email': {
+                            S: event.request.userAttributes.email
+                        }
                     }
                 },
                 'timestamps': {
                     M: {
-                        'createdAt': { S: date.toISOString() },
-                        'updatedAt': { S: date.toISOString() },
+                        'createdAt': {
+                            S: date.toISOString()
+                        },
+                        'updatedAt': {
+                            S: date.toISOString()
+                        },
                     }
                 }
             },
