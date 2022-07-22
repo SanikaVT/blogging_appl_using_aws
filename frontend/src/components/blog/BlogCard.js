@@ -202,7 +202,7 @@ export default function BlogCard({ handleMenu, item }) {
         sx={{ mb: 3, justifyContent: "space-between", alignItems: "center" }}
       >
         <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-          {itemState.userInformation.user.firstName}
+          {itemState?.userInformation?.user?.firstName}
         </Typography>
         <Stack direction="row">
           <Button
