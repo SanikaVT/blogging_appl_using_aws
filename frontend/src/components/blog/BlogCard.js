@@ -16,7 +16,6 @@ import axios from "axios";
 import CommentInput from "../commentInput";
 import SingleComment from "../SingleComment";
 import { hostUrl, topicArnPrefix } from "../../constants";
-// import { topicArnPrefix } from "../../constants";
 
 export default function BlogCard({ handleMenu, item }) {
   const [itemState, setItemState] = React.useState(item);
@@ -30,24 +29,6 @@ export default function BlogCard({ handleMenu, item }) {
   const [visibleComments, setVisibleComments] = React.useState([]);
 
   const likeBlog = (blogId) => {
-    axios({
-      method: "post",
-      url: hostUrl + "/sendNotification",
-      data: {
-        Message:
-          "Hi " + getFullName() + "! You have received a like on your blog!",
-        Subject: "Someone liked you blog!",
-        TopicArn: topicArnPrefix + ":" + getUserId(),
-      },
-      headers: {
-        Authorization: getJwtToken(),
-      },
-    })
-      .then(() => {})
-      .catch((err) => {
-        console.log("Error while calling Send Notification api: ", err);
-      });
-      
     axios({
       method: "put",
       url: hostUrl + "/likeBlog",
@@ -69,6 +50,26 @@ export default function BlogCard({ handleMenu, item }) {
       })
       .catch((err) => {
         console.log("Error while calling like blog API: ", err);
+      });
+
+    axios({
+      method: "post",
+      url: "https://722kqrljfi.execute-api.us-east-1.amazonaws.com/sendEmail",
+      data: {
+        Message:
+          "Hi " + getFullName() + "! You have received a like on your blog!",
+        Subject: "Someone liked your blog!",
+        TopicArn: topicArnPrefix + getUserId(),
+      },
+      headers: {
+        Authorization: getJwtToken(),
+      },
+    })
+      .then(() => {
+        console.log("send Notify");
+      })
+      .catch((err) => {
+        console.log("Error while calling Send Notification api: ", err);
       });
   };
 
@@ -201,7 +202,7 @@ export default function BlogCard({ handleMenu, item }) {
         sx={{ mb: 3, justifyContent: "space-between", alignItems: "center" }}
       >
         <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-          {itemState.userInformation.user.firstName}
+          {itemState?.userInformation?.user?.firstName}
         </Typography>
         <Stack direction="row">
           <Button

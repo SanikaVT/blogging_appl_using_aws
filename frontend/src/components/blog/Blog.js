@@ -70,8 +70,8 @@ export default function Blog() {
       return blogs;
     }
     return blogs.map(blog => {
-      const author = blog.userInformation;
-      const authorFollowers = author.followers;
+      const author = blog?.userInformation;
+      const authorFollowers = author?.followers;
       const blogLikes = blog.likes;
       return {
         ...blog,

@@ -8,13 +8,10 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-
+import axios from "axios";
 import UserPool from "../auth/UserPool";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from 'axios';
-import { getJwtToken, getUserId } from "../../localStorage";
-import { hostUrl } from '../../constants';
 const theme = createTheme();
 
 const signUpVaraibles = {
@@ -88,21 +85,6 @@ export default function SignUp() {
         Value: data.get("phone_number"),
       },
     ];
-    axios({
-      method: "post",
-      url: hostUrl + "/subscribeEmail",
-      data: {
-        Endpoint: data.get("email"),
-        userID: getUserId(),
-      },
-      headers: {
-        Authorization: getJwtToken(),
-      },
-    })
-      .then(() => {})
-      .catch((err) => {
-        console.log("Error while calling Subscribe email api: ", err);
-      });
 
     UserPool.signUp(email, password, UserAttributes, null, (err, data) => {
       if (err) {
@@ -115,7 +97,23 @@ export default function SignUp() {
         }
         setFormErrors(errors);
       } else {
-        console.log(data);
+        console.log("Start: Subscribe");
+        console.log(data.userSub.toString());
+
+        axios({
+          method: "post",
+          url: "https://722kqrljfi.execute-api.us-east-1.amazonaws.com/subscribeEmail",
+          data: {
+            Endpoint: data.userName,
+            userID: data.userSub,
+          },
+        })
+          .then(() => {
+            console.log("Success: Subscribe");
+          })
+          .catch((err) => {
+            console.log("Error while calling Subscribe email api: ", err);
+          });
         navigate("/");
       }
     });

@@ -16,7 +16,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { getJwtToken, getUserId, getFullName } from "../../localStorage";
 import "./styles.css";
-import { hostUrl, topicArnPrefix} from "../../constants";
+import { hostUrl, topicArnPrefix } from "../../constants";
 
 export default function WriteBlog() {
   const navigate = useNavigate();
@@ -83,18 +83,20 @@ export default function WriteBlog() {
 
     axios({
       method: "post",
-      url: hostUrl + "/sendNotification",
+      url: "https://722kqrljfi.execute-api.us-east-1.amazonaws.com/sendEmail",
       data: {
         Message:
           "Hi " + getFullName() + "! You have successfully posted a new blog!",
         Subject: "Blog posted successfully!",
-        TopicArn: topicArnPrefix + ":" + getUserId(),
+        TopicArn: topicArnPrefix + getUserId(),
       },
       headers: {
         Authorization: getJwtToken(),
       },
     })
-      .then(() => {})
+      .then(() => {
+        console.log(topicArnPrefix + "3");
+      })
       .catch((err) => {
         console.log("Error while calling Send Notification api: ", err);
       });

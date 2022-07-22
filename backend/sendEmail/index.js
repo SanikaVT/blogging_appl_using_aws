@@ -4,17 +4,23 @@ AWS.config.update({
 });
 var sns = new AWS.SNS();
 //Code Reference: https://gist.github.com/agabardo/678c43d73af7b374851d25d493431f03
-exports.handler = (event, context) => {
+exports.handler = async (event, context) => {
+  const body = JSON.parse(event.body);
+
   const params = {
-    Message: event.Message,
-    Subject: event.Subject,
-    TopicArn: event.TopicArn,
+    Message: body.Message,
+    Subject: body.Subject,
+    TopicArn: body.TopicArn,
   };
-  sns.publish(params, function (err, data) {
-    if (err) {
-      console.log(err, err.stack);
-    } else {
-    }
-    console.log(data);
-  });
+
+  await sns.publish(params).promise();
+  return {
+    statusCode: 200,
+    body: JSON.stringify({
+      message: "Success",
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  };
 };
