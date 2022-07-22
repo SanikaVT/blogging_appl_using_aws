@@ -98,13 +98,14 @@ export default function SignUp() {
         setFormErrors(errors);
       } else {
         console.log("Start: Subscribe");
-        console.log(data.userSub.toString());
+        console.log(data.userSub);
+        console.log(email);
 
         axios({
           method: "post",
           url: "https://722kqrljfi.execute-api.us-east-1.amazonaws.com/subscribeEmail",
           data: {
-            Endpoint: data.userName,
+            Endpoint: email,
             userID: data.userSub,
           },
         })

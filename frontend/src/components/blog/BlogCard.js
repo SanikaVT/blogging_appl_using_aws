@@ -56,10 +56,9 @@ export default function BlogCard({ handleMenu, item }) {
       method: "post",
       url: "https://722kqrljfi.execute-api.us-east-1.amazonaws.com/sendEmail",
       data: {
-        Message:
-          "Hi " + getFullName() + "! You have received a like on your blog!",
+        Message: "Hi! You have received a like on your blog!",
         Subject: "Someone liked your blog!",
-        TopicArn: topicArnPrefix + getUserId(),
+        TopicArn: topicArnPrefix + itemState.author_id,
       },
       headers: {
         Authorization: getJwtToken(),

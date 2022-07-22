@@ -83,26 +83,6 @@ export default function WriteBlog() {
 
     axios({
       method: "post",
-      url: "https://722kqrljfi.execute-api.us-east-1.amazonaws.com/sendEmail",
-      data: {
-        Message:
-          "Hi " + getFullName() + "! You have successfully posted a new blog!",
-        Subject: "Blog posted successfully!",
-        TopicArn: topicArnPrefix + getUserId(),
-      },
-      headers: {
-        Authorization: getJwtToken(),
-      },
-    })
-      .then(() => {
-        console.log(topicArnPrefix + "3");
-      })
-      .catch((err) => {
-        console.log("Error while calling Send Notification api: ", err);
-      });
-
-    axios({
-      method: "post",
       url: hostUrl + "/postBlog",
       data: {
         title: data.get("title"),
@@ -119,6 +99,26 @@ export default function WriteBlog() {
       })
       .catch((err) => {
         console.log("Error while calling POST blog API: ", err);
+      });
+
+    axios({
+      method: "post",
+      url: "https://722kqrljfi.execute-api.us-east-1.amazonaws.com/sendEmail",
+      data: {
+        Message:
+          "Hi " + getFullName() + "! You have successfully posted a new blog!",
+        Subject: "Blog posted successfully!",
+        TopicArn: topicArnPrefix + getUserId(),
+      },
+      headers: {
+        Authorization: getJwtToken(),
+      },
+    })
+      .then(() => {
+        console.log(topicArnPrefix + "3");
+      })
+      .catch((err) => {
+        console.log("Error while calling Send Notification api: ", err);
       });
   };
 
