@@ -1,6 +1,6 @@
-const AWS = require("aws-sdk");
+const AWS = require('aws-sdk');
 AWS.config.update({
-  region: "us-east-1",
+  region: 'us-east-1',
 });
 var sns = new AWS.SNS();
 //Code Reference: https://gist.github.com/agabardo/678c43d73af7b374851d25d493431f03
@@ -13,7 +13,7 @@ exports.handler = async (event, context) => {
   // returns topic ARn
   data = await sns.createTopic(topic_params).promise();
   const params = {
-    Protocol: "Email" /* required */, //http , https ,application
+    Protocol: 'Email' /* required */, //http , https ,application
     TopicArn: data.TopicArn /* required */, // topic you want to subscribe
     Endpoint: body.Endpoint, // the endpoint that you want to receive notifications.
   };
@@ -24,11 +24,11 @@ exports.handler = async (event, context) => {
     body: JSON.stringify({
       data: data,
 
-      message: "Success",
+      message: 'Success',
     }),
 
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     },
   };
 };

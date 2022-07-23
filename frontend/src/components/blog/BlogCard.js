@@ -54,7 +54,7 @@ export default function BlogCard({ handleMenu, item }) {
 
     axios({
       method: "post",
-      url: "https://722kqrljfi.execute-api.us-east-1.amazonaws.com/sendEmail",
+      url: `${hostUrl}/sendEmail`,
       data: {
         Message: "Hi! You have received a like on your blog!",
         Subject: "Someone liked your blog!",
@@ -110,9 +110,9 @@ export default function BlogCard({ handleMenu, item }) {
       setVisibleComments(
         parsedComments
           ? parsedComments.slice(
-              0,
-              Math.min(visibleCommentsCount, parsedComments.length)
-            )
+            0,
+            Math.min(visibleCommentsCount, parsedComments.length)
+          )
           : []
       );
     }

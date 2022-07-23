@@ -12,6 +12,7 @@ import axios from "axios";
 import UserPool from "../auth/UserPool";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { hostUrl } from "../../constants";
 const theme = createTheme();
 
 const signUpVaraibles = {
@@ -103,7 +104,7 @@ export default function SignUp() {
 
         axios({
           method: "post",
-          url: "https://722kqrljfi.execute-api.us-east-1.amazonaws.com/subscribeEmail",
+          url: `${hostUrl}/subscribeEmail`,
           data: {
             Endpoint: email,
             userID: data.userSub,

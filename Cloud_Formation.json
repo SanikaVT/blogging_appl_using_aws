@@ -325,6 +325,106 @@
                 }
             }
         },
+        "sendEmailLambda":{
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "FunctionName": "sendEmailCf",
+                "Description": "Lambda function which triggers emails to users",
+                "Role": {"Ref": "IamRole"},
+                "Handler": "index.handler",
+				"Runtime": "nodejs16.x",
+				"Timeout": "10",
+                "Code": {
+                    "ZipFile": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "\nconst AWS = require('aws-sdk');",
+                                "\nAWS.config.update({",
+                                "\n  region: 'us-east-1',",
+                                "\n});",
+                                "\nvar sns = new AWS.SNS();",
+                                "\n//Code Reference: https://gist.github.com/agabardo/678c43d73af7b374851d25d493431f03",
+                                "\nexports.handler = async (event, context) => {",
+                                "\n  const body = JSON.parse(event.body);",
+                                "\n",
+                                "\n  const params = {",
+                                "\n    Message: body.Message,",
+                                "\n    Subject: body.Subject,",
+                                "\n    TopicArn: body.TopicArn,",
+                                "\n  };",
+                                "\n",
+                                "\n  await sns.publish(params).promise();",
+                                "\n  return {",
+                                "\n    statusCode: 200,",
+                                "\n    body: JSON.stringify({",
+                                "\n      message: 'Success',",
+                                "\n    }),",
+                                "\n    headers: {",
+                                "\n      'Content-Type': 'application/json',",
+                                "\n    },",
+                                "\n  };",
+                                "\n};"
+                            ]
+                        ]
+                    }
+                }
+            }
+        },
+        "subscribeEmailLambda": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "FunctionName": "subscribeEmailCf",
+                "Description": "Lambda function which subscribes user emails after signup",
+                "Role": {"Ref": "IamRole"},
+                "Handler": "index.handler",
+				"Runtime": "nodejs16.x",
+				"Timeout": "10",
+                "Code":{
+                    "ZipFile": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "\nconst AWS = require('aws-sdk');",
+                                "\nAWS.config.update({",
+                                "\n  region: 'us-east-1',",
+                                "\n});",
+                                "\nvar sns = new AWS.SNS();",
+                                "\n//Code Reference: https://gist.github.com/agabardo/678c43d73af7b374851d25d493431f03",
+                                "\nlet data = null;",
+                                "\nexports.handler = async (event, context) => {",
+                                "\n  const body = JSON.parse(event.body);",
+                                "\n  const topic_params = {",
+                                "\n    Name: body.userID,",
+                                "\n  };",
+                                "\n  // returns topic ARn",
+                                "\n  data = await sns.createTopic(topic_params).promise();",
+                                "\n  const params = {",
+                                "\n    Protocol: 'Email' /* required */, //http , https ,application",
+                                "\n    TopicArn: data.TopicArn /* required */, // topic you want to subscribe",
+                                "\n    Endpoint: body.Endpoint, // the endpoint that you want to receive notifications.",
+                                "\n  };",
+                                "\n  await sns.subscribe(params).promise();",
+                                "\n  return {",
+                                "\n    statusCode: 200,",
+                                "\n",
+                                "\n    body: JSON.stringify({",
+                                "\n      data: data,",
+                                "\n",
+                                "\n      message: 'Success',",
+                                "\n    }),",
+                                "\n",
+                                "\n    headers: {",
+                                "\n      'Content-Type': 'application/json',",
+                                "\n    },",
+                                "\n  };",
+                                "\n};"
+                            ]
+                        ]
+                    }
+                }
+            }
+        },
         "postImageLambda": {
             "Type": "AWS::Lambda::Function",
 			"Properties": {
@@ -904,6 +1004,116 @@
                 }
             },
             "DependsOn": ["postImageIntegration"]
+        },
+        "sendEmailIntegration": {
+            "Type": "AWS::ApiGatewayV2::Integration",
+            "Properties": {
+                "ApiId": {"Ref": "cfTestGateway"},
+                "CredentialsArn": { "Ref": "IamRole"},
+                "IntegrationMethod": "POST",
+                "IntegrationType": "AWS_PROXY",
+                "IntegrationUri": {
+                    "Fn::Join": [
+                        "",
+                        [
+                            "arn:",
+                            {
+                                "Ref": "AWS::Partition"
+                            },
+                            ":apigateway:",
+                            {
+                                "Ref": "AWS::Region"
+                            },
+                            ":lambda:path/2015-03-31/functions/",
+                            {
+                                "Fn::GetAtt": [
+                                    "sendEmailLambda",
+                                    "Arn"
+                                ]
+                            },
+                            "/invocations"
+                        ]
+                    ]
+                },
+                "PayloadFormatVersion": "2.0"
+            },
+            "DependsOn": ["cfTestGateway", "basicAuthorizer"]
+        },
+        "sendEmailRoute":{
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+                "ApiId": {"Ref": "cfTestGateway"},
+                "AuthorizationType": "JWT",
+                "AuthorizerId": {
+                    "Ref": "basicAuthorizer"
+                },
+                "RouteKey": "POST /sendEmail",
+                "Target": {
+                    "Fn::Join": [
+                        "/",
+                        [
+                            "integrations",
+                            {
+                                "Ref": "sendEmailIntegration"
+                            }
+                        ]
+                    ]
+                }
+            },
+            "DependsOn": ["sendEmailIntegration"]
+        },
+        "subscribleEmailIntegration": {
+            "Type": "AWS::ApiGatewayV2::Integration",
+            "Properties": {
+                "ApiId": {"Ref": "cfTestGateway"},
+                "CredentialsArn": { "Ref": "IamRole"},
+                "IntegrationMethod": "POST",
+                "IntegrationType": "AWS_PROXY",
+                "IntegrationUri": {
+                    "Fn::Join": [
+                        "",
+                        [
+                            "arn:",
+                            {
+                                "Ref": "AWS::Partition"
+                            },
+                            ":apigateway:",
+                            {
+                                "Ref": "AWS::Region"
+                            },
+                            ":lambda:path/2015-03-31/functions/",
+                            {
+                                "Fn::GetAtt": [
+                                    "subscribeEmailLambda",
+                                    "Arn"
+                                ]
+                            },
+                            "/invocations"
+                        ]
+                    ]
+                },
+                "PayloadFormatVersion": "2.0"
+            },
+            "DependsOn": ["cfTestGateway"]
+        },
+        "subscribleEmailRoute":{
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+                "ApiId": {"Ref": "cfTestGateway"},
+                "RouteKey": "POST /subscribeEmail",
+                "Target": {
+                    "Fn::Join": [
+                        "/",
+                        [
+                            "integrations",
+                            {
+                                "Ref": "subscribleEmailIntegration"
+                            }
+                        ]
+                    ]
+                }
+            },
+            "DependsOn": ["subscribleEmailIntegration"]
         },
         "frontendBeanstalkTest": {
             "Type": "AWS::ElasticBeanstalk::Application",
