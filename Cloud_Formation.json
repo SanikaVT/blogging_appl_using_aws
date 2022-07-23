@@ -89,47 +89,68 @@
 						"Fn::Join": [
 							"",
 							[
-								"\nvar aws = require('aws-sdk');",
-								"\nvar ddb = new aws.DynamoDB();",
-								"\nexports.handler = async (event, context) => {",
-								"\n   console.log('Request from event is: ', event.request);",
-								"\n   let date = new Date();",
-								"\n   if (event.request.userAttributes.sub) {",
-								"\n      let params = {",
-								"\n         Item: {",
-								"\n            'user_id': {S: event.request.userAttributes.sub},",
-								"\n            'followers_count': 0,",
-								"\n            'following_count': 0,",
-								"\n            'user': {",
-								"\n               M: {",
-								"\n                  'firstName': {S: event.request.userAttributes.given_name},",
-								"\n                  'lastName': {S: event.request.userAttributes.family_name},",
-								"\n                  'phoneNumber': {S: event.request.userAttributes.phone_number},",
-								"\n                  'email': {S: event.request.userAttributes.email}",
-								"\n               }",
-								"\n            },",
-								"\n            'timestamps': {",
-								"\n               M: {",
-								"\n                  'createdAt': {S: date.toISOString()},",
-								"\n                  'updatedAt': {S: date.toISOString()},",
-								"\n               }",
-								"\n            }",
-								"\n         },",
-								"\n         TableName: 'user'",
-								"\n      }",
-								"\n      try {",
-								"\n          await ddb.putItem(params).promise()",
-								"\n          console.log('Success')",
-								"\n      } catch (err) {",
-								"\n          console.log('Error', err)",
-								"\n      }",
-								"\n      console.log('Success: Everything executed correctly')",
-								"\n      context.done(null, event)",
-								"\n   } else {",
-								"\n      console.log('Error: Nothing was written to DynamoDB')",
-								"\n      context.done(null, event)",
-								"\n   }",
-								"\n};"
+								"\nvar aws = require('aws-sdk')",
+                                "\nvar ddb = new aws.DynamoDB()",
+                                "\n",
+                                "\nexports.handler = async (event, context) => {",
+                                "\n    console.log('Request from event is: ', event.request);",
+                                "\n    let date = new Date()",
+                                "\n",
+                                "\n    if (event.request.userAttributes.sub) {",
+                                "\n        let params = {",
+                                "\n            Item: {",
+                                "\n                'user_id': {",
+                                "\n                    S: event.request.userAttributes.sub",
+                                "\n                },",
+                                "\n                'followers_count': {",
+                                "\n                    N: '0'",
+                                "\n                },",
+                                "\n                'following_count': {",
+                                "\n                    N: '0'",
+                                "\n                },",
+                                "\n                'user': {",
+                                "\n                    M: {",
+                                "\n                        'firstName': {",
+                                "\n                            S: event.request.userAttributes.given_name",
+                                "\n                        },",
+                                "\n                        'lastName': {",
+                                "\n                            S: event.request.userAttributes.family_name",
+                                "\n                        },",
+                                "\n                        'phoneNumber': {",
+                                "\n                            S: event.request.userAttributes.phone_number",
+                                "\n                        },",
+                                "\n                        'email': {",
+                                "\n                            S: event.request.userAttributes.email",
+                                "\n                        }",
+                                "\n                    }",
+                                "\n                },",
+                                "\n                'timestamps': {",
+                                "\n                    M: {",
+                                "\n                        'createdAt': {",
+                                "\n                            S: date.toISOString()",
+                                "\n                        },",
+                                "\n                        'updatedAt': {",
+                                "\n                            S: date.toISOString()",
+                                "\n                        },",
+                                "\n                    }",
+                                "\n                }",
+                                "\n            },",
+                                "\n            TableName: 'user'",
+                                "\n        }",
+                                "\n",
+                                "\n        try {",
+                                "\n            await ddb.putItem(params).promise()",
+                                "\n            console.log('Success')",
+                                "\n        } catch (err) {",
+                                "\n            console.log('Error', err)",
+                                "\n        }",
+                                "\n        console.log('Success: Everything executed correctly')",
+                                "\n        context.done(null, event)",
+                                "\n    } else {",
+                                "\n        console.log('Error: Nothing was written to DynamoDB')",
+                                "\n        context.done(null, event)",
+                                "\n    }",
+                                "\n};"
 							]
 						]
 					}
@@ -263,6 +284,103 @@
 				"Cognito"
 			]
 		},
+        "OnPostConfirmationPermission": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+                "Action": "lambda:InvokeFunction",
+                "FunctionName": {
+                    "Fn::GetAtt": [
+                        "PostConfirmationLambda",
+                        "Arn"
+                    ]
+                },
+                "Principal": "cognito-idp.amazonaws.com",
+                "SourceArn": {
+                    "Fn::GetAtt": [
+                        "Cognito",
+                        "Arn"
+                    ]
+                }
+            }
+        },
+        "blogImagesBucket": {
+            "Type" : "AWS::S3::Bucket",
+            "Properties": {
+                "AccessControl": "PublicRead",
+                "BucketName": "my-blogging-images-cf-test1",
+                "CorsConfiguration": {
+                    "CorsRules": [
+                        {
+                            "AllowedHeaders": [
+                                "*"
+                            ],
+                            "AllowedMethods": [
+                                "GET", "POST", "DELETE", "PUT"
+                            ],
+                            "AllowedOrigins": [
+                                "*"
+                            ]
+                        }
+                    ]
+                }
+            }
+        },
+        "postImageLambda": {
+            "Type": "AWS::Lambda::Function",
+			"Properties": {
+				"FunctionName": "postImangeCf",
+				"Description": "Lambda to post images of the blog to s3",
+				"Role": { "Ref": "IamRole"},
+				"Handler": "index.handler",
+				"Runtime": "nodejs16.x",
+				"Timeout": "10",
+				"Code": {
+					"ZipFile": {
+						"Fn::Join": [
+							"",
+							[
+                                "\nconst S3_BUCKET = 'my-blogging-images-cf-test1';",
+                                "\nconst aws = require('aws-sdk');",
+                                "\nconst s3 = new aws.S3({ apiVersion: '2006-03-01' });",
+                                "\n",
+                                "\nexports.handler = async (event) => {",
+                                "\n",
+                                "\n    console.log(event);",
+                                "\n    const response = {",
+                                "\n        statusCode: 200,",
+                                "\n        body: JSON.stringify({ message: 'Image uploaded successfully' }),",
+                                "\n        headers: { 'content-type': 'application/json' }",
+                                "\n    }",
+                                "\n    try {",
+                                "\n        const parsedBody = JSON.parse(event.body);",
+                                "\n        const base64File = parsedBody.file;",
+                                "\n        const type = base64File.split(';')[0].split('/')[1];",
+                                "\n        const decodeFile = Buffer.from(base64File.replace(/^data:image\\/\\w+;base64,/, ''), 'base64')",
+                                "\n",
+                                "\n        const bucketParams = {",
+                                "\n            Bucket: S3_BUCKET,",
+                                "\n            Key: parsedBody.key + '.' + type,",
+                                "\n            Body: decodeFile,",
+                                "\n            ContentEncoding: 'base64',",
+                                "\n            ContentType: 'image/*',",
+                                "\n            ACL: 'public-read'",
+                                "\n        };",
+                                "\n",
+                                "\n        const uploadResult = await s3.upload(bucketParams).promise();",
+                                "\n        response.body = JSON.stringify({ message: 'Image uploaded successfully', uploadResult: uploadResult })",
+                                "\n        console.log(uploadResult);",
+                                "\n    } catch (err) {",
+                                "\n        console.log(err);",
+                                "\n    }",
+                                "\n    return response;",
+                                "\n};"
+							]
+						]
+					}
+				}
+			},
+			"DependsOn": ["blogImagesBucket"]
+        },
 		"DeleteBlogLambda": {
 			"Type": "AWS::Lambda::Function",
 			"Properties": {
@@ -386,8 +504,7 @@
             },
 			"DependsOn": ["DDBUser", "DDBBlog"]
         },
-        "cfTestGateway":
-        {
+        "cfTestGateway": {
             "Type": "AWS::ApiGatewayV2::Api",
             "Properties": {
                 "CorsConfiguration": {
@@ -417,8 +534,31 @@
                 "IdentitySource": ["$request.header.Authorization"],
                 "Name": "Basic-Authorizer",
                 "JwtConfiguration": {
-                    "Audience": ["7gstqtcfpdq4p7e25734lgbclt"],
-                    "Issuer": "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_uYjjKtUgM"
+                    "Audience": [{"Ref": "AppClient"}],
+                    "Issuer": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "https://cognito-idp.us-east-1.amazonaws.com/",
+                                {
+                                    "Fn::Select": [
+                                        "1",
+                                        {
+                                            "Fn::Split":[
+                                                "/",
+                                                {
+                                                    "Fn::GetAtt": [
+                                                        "Cognito",
+                                                        "Arn"
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        ]
+                    }
                 }
             },
             "DependsOn": ["cfTestGateway"]
@@ -707,6 +847,63 @@
                 }
             },
             "DependsOn": ["postBlogIntegration"]
+        },
+        "postImageIntegration": {
+            "Type": "AWS::ApiGatewayV2::Integration",
+            "Properties": {
+                "ApiId": {"Ref": "cfTestGateway"},
+                "CredentialsArn": { "Ref": "IamRole"},
+                "IntegrationMethod": "POST",
+                "IntegrationType": "AWS_PROXY",
+                "IntegrationUri": {
+                    "Fn::Join": [
+                        "",
+                        [
+                            "arn:",
+                            {
+                                "Ref": "AWS::Partition"
+                            },
+                            ":apigateway:",
+                            {
+                                "Ref": "AWS::Region"
+                            },
+                            ":lambda:path/2015-03-31/functions/",
+                            {
+                                "Fn::GetAtt": [
+                                    "postImageLambda",
+                                    "Arn"
+                                ]
+                            },
+                            "/invocations"
+                        ]
+                    ]
+                },
+                "PayloadFormatVersion": "2.0"
+            },
+            "DependsOn": ["cfTestGateway", "basicAuthorizer"]
+        },
+        "postImageRoute": {
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+                "ApiId": {"Ref": "cfTestGateway"},
+                "AuthorizationType": "JWT",
+                "AuthorizerId": {
+                    "Ref": "basicAuthorizer"
+                },
+                "RouteKey": "POST /image",
+                "Target": {
+                    "Fn::Join": [
+                        "/",
+                        [
+                            "integrations",
+                            {
+                                "Ref": "postImageIntegration"
+                            }
+                        ]
+                    ]
+                }
+            },
+            "DependsOn": ["postImageIntegration"]
         },
         "frontendBeanstalkTest": {
             "Type": "AWS::ElasticBeanstalk::Application",
