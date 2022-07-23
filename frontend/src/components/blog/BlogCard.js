@@ -16,6 +16,7 @@ import axios from "axios";
 import CommentInput from "../commentInput";
 import SingleComment from "../SingleComment";
 import { hostUrl, topicArnPrefix } from "../../constants";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 export default function BlogCard({ handleMenu, item }) {
   const [itemState, setItemState] = React.useState(item);
@@ -28,6 +29,11 @@ export default function BlogCard({ handleMenu, item }) {
 
   const [visibleComments, setVisibleComments] = React.useState([]);
 
+  var buttonDisabled = true;
+
+  if (getUserId() === itemState.author_id) {
+    buttonDisabled = false;
+  }
   const likeBlog = (blogId) => {
     axios({
       method: "put",
@@ -110,9 +116,9 @@ export default function BlogCard({ handleMenu, item }) {
       setVisibleComments(
         parsedComments
           ? parsedComments.slice(
-            0,
-            Math.min(visibleCommentsCount, parsedComments.length)
-          )
+              0,
+              Math.min(visibleCommentsCount, parsedComments.length)
+            )
           : []
       );
     }
@@ -212,8 +218,11 @@ export default function BlogCard({ handleMenu, item }) {
           >
             {itemState.followStatus}
           </Button>
-          <IconButton onClick={(event) => handleMenu(event, itemState.blog_id)}>
-            <MoreVertIcon />
+          <IconButton
+            disabled={buttonDisabled}
+            onClick={(event) => handleMenu(event, itemState.blog_id)}
+          >
+            <DeleteIcon />
           </IconButton>
         </Stack>
       </Stack>
