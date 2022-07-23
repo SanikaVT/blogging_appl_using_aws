@@ -32,7 +32,7 @@ build:
         - aws configure set default.region us-east-1
         - aws ecr get-login-password | docker login --username AWS --password-stdin $REGISTRY
         - docker push $REGISTRY/$APP_NAME:latest
-        - aws elasticbeanstalk create-environment --application-name $BEANSTALK_APPLICATION_NAME --template-name frontend-env-configuration --version-label v0.0.1 --environment-name $BEANSTALK_ENVIRONMENT_NAME
+        - aws elasticbeanstalk create-environment --application-name $BEANSTALK_APPLICATION_NAME --template-name $BEANSTALK_TEMPLATE_NAME --version-label $BEANSTALK_CODE_VERSION --environment-name $BEANSTALK_ENVIRONMENT_NAME
         # - aws elasticbeanstalk rebuild-environment --environment-name $BEANSTALK_ENVIRONMENT_NAME
     only:
         - develop
