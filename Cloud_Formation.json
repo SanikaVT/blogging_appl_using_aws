@@ -1,16 +1,16 @@
 {
-	"Parameters": {
+    "Parameters": {
         "IamRole": {
             "Type": "String",
             "Description": "Provide ARN for the LabRole in AWS."
         },
-		"domainName": {
-			"Type": "String",
-			"Description": "Domain name of the cognito user pool.",
-			"AllowedPattern": "^[a-z0-9](?:[a-z0-9\\-]{0,61}[a-z0-9])?$",
-			"MaxLength": 63,
-			"MinLength": 1
-		},
+        "domainName": {
+            "Type": "String",
+            "Description": "Domain name of the cognito user pool.",
+            "AllowedPattern": "^[a-z0-9](?:[a-z0-9\\-]{0,61}[a-z0-9])?$",
+            "MaxLength": 63,
+            "MinLength": 1
+        },
         "beanstalkApplicationName": {
             "Type": "String",
             "Description": "Application name of the beanstalk",
@@ -26,70 +26,72 @@
             "Description": "S3 Bucket name on where beanstalk code is uploaded"
         }
     },
-	"Resources": {
-		"DDBUser": {
-			"Type": "AWS::DynamoDB::Table",
-			"Properties": {
-				"TableName": "user",
-				"AttributeDefinitions": [
-					{
-						"AttributeName": "user_id",
-						"AttributeType": "S"
-					}
-				],
-				"BillingMode": "PROVISIONED",
-				"KeySchema": [
-					{
-						"AttributeName": "user_id",
-						"KeyType": "HASH"
-					}
-				],
-				"TableClass": "STANDARD",
-				"ProvisionedThroughput": {
-					"ReadCapacityUnits": 1,
-					"WriteCapacityUnits": 1
-				}
-			}
-		},
-		"DDBBlog": {
-			"Type": "AWS::DynamoDB::Table",
-			"Properties": {
-				"TableName": "blog",
-				"AttributeDefinitions": [
-					{
-						"AttributeName": "blog_id",
-						"AttributeType": "S"
-					}
-				],
-				"BillingMode": "PROVISIONED",
-				"KeySchema": [
-					{
-						"AttributeName": "blog_id",
-						"KeyType": "HASH"
-					}
-				],
-				"TableClass": "STANDARD",
-				"ProvisionedThroughput": {
-					"ReadCapacityUnits": 1,
-					"WriteCapacityUnits": 1
-				}
-			}
-		},
-		"PostConfirmationLambda": {
-			"Type": "AWS::Lambda::Function",
-			"Properties": {
-				"FunctionName": "PostConfirmation",
-				"Description": "Lambda to enter user details into DynamoDB post user confirms the email",
-				"Role": { "Ref": "IamRole"},
-				"Handler": "index.handler",
-				"Runtime": "nodejs16.x",
-				"Timeout": "10",
-				"Code": {
-					"ZipFile": {
-						"Fn::Join": [
-							"",
-							[
-								"\nvar aws = require('aws-sdk')",
+    "Resources": {
+        "DDBUser": {
+            "Type": "AWS::DynamoDB::Table",
+            "Properties": {
+                "TableName": "user",
+                "AttributeDefinitions": [
+                    {
+                        "AttributeName": "user_id",
+                        "AttributeType": "S"
+                    }
+                ],
+                "BillingMode": "PROVISIONED",
+                "KeySchema": [
+                    {
+                        "AttributeName": "user_id",
+                        "KeyType": "HASH"
+                    }
+                ],
+                "TableClass": "STANDARD",
+                "ProvisionedThroughput": {
+                    "ReadCapacityUnits": 1,
+                    "WriteCapacityUnits": 1
+                }
+            }
+        },
+        "DDBBlog": {
+            "Type": "AWS::DynamoDB::Table",
+            "Properties": {
+                "TableName": "blog",
+                "AttributeDefinitions": [
+                    {
+                        "AttributeName": "blog_id",
+                        "AttributeType": "S"
+                    }
+                ],
+                "BillingMode": "PROVISIONED",
+                "KeySchema": [
+                    {
+                        "AttributeName": "blog_id",
+                        "KeyType": "HASH"
+                    }
+                ],
+                "TableClass": "STANDARD",
+                "ProvisionedThroughput": {
+                    "ReadCapacityUnits": 1,
+                    "WriteCapacityUnits": 1
+                }
+            }
+        },
+        "PostConfirmationLambda": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "FunctionName": "PostConfirmation",
+                "Description": "Lambda to enter user details into DynamoDB post user confirms the email",
+                "Role": {
+                    "Ref": "IamRole"
+                },
+                "Handler": "index.handler",
+                "Runtime": "nodejs16.x",
+                "Timeout": "10",
+                "Code": {
+                    "ZipFile": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "\nvar aws = require('aws-sdk')",
                                 "\nvar ddb = new aws.DynamoDB()",
                                 "\n",
                                 "\nexports.handler = async (event, context) => {",
@@ -151,139 +153,141 @@
                                 "\n        context.done(null, event)",
                                 "\n    }",
                                 "\n};"
-							]
-						]
-					}
-				}
-			}
-		},
-		"Cognito": {
-			"Type": "AWS::Cognito::UserPool",
-			"Properties": {
-				"UserPoolName": "CFBlogging",
-				"AccountRecoverySetting": {
-					"RecoveryMechanisms": [
-						{
-							"Name": "verified_email",
-							"Priority": 1
-						}
-					]
-				},
-				"AdminCreateUserConfig": {
-					"AllowAdminCreateUserOnly": "false"
-				},
-				"Schema": [
-					{
-						"AttributeDataType": "String",
-						"Name": "email",
-						"Required": "True"
-					},
-					{
-						"AttributeDataType": "String",
-						"Name": "family_name",
-						"Required": "True"
-					},
-					{
-						"AttributeDataType": "String",
-						"Name": "given_name",
-						"Required": "True"
-					},
-					{
-						"AttributeDataType": "String",
-						"Name": "phone_number",
-						"Required": "True"
-					}
-				],
-				"AutoVerifiedAttributes": [
-					"email"
-				],
-				"DeviceConfiguration": {
-					"DeviceOnlyRememberedOnUserPrompt": true
-				},
-				"LambdaConfig": {
-					"PostConfirmation": {
-						"Fn::GetAtt": [
-							"PostConfirmationLambda",
-							"Arn"
-						]
-					}
-				},
-				"Policies": {
-					"PasswordPolicy": {
-						"MinimumLength": 8,
-						"RequireLowercase": "True",
-						"RequireNumbers": "True",
-						"RequireSymbols": "True",
-						"RequireUppercase": "True"
-					}
-				},
-				"UsernameAttributes": [
-					"email"
-				],
-				"UsernameConfiguration": {
-					"CaseSensitive": "False"
-				},
-				"VerificationMessageTemplate": {
-					"DefaultEmailOption": "CONFIRM_WITH_LINK",
-					"EmailMessageByLink": "Please click the link below to verify your email address. {##Verify Email##} ",
-					"EmailSubjectByLink": "Your verification link"
-				}
-			},
-			"DependsOn": [
-				"PostConfirmationLambda"
-			]
-		},
-		"Domain": {
-			"Type": "AWS::Cognito::UserPoolDomain",
-			"Properties": {
-				"Domain": {"Ref": "domainName"},
-				"UserPoolId": {
-					"Fn::Select": [
-						"1",
-						{
-							"Fn::Split":[
-								"/",
-								{
-									"Fn::GetAtt": [
-										"Cognito",
-										"Arn"
-									]
-								}
-							]
-						}
-					]
-				}
-			},
-			"DependsOn": [
-				"Cognito"
-			]
-		},
-		"AppClient": {
-			"Type": "AWS::Cognito::UserPoolClient",
-			"Properties": {
-				"ClientName": "blog",
-				"GenerateSecret": "False",
-				"UserPoolId": {
-					"Fn::Select": [
-						"1",
-						{
-							"Fn::Split":[
-								"/",
-								{
-									"Fn::GetAtt": [
-										"Cognito",
-										"Arn"
-									]
-								}
-							]
-						}
-					]
-				}
-			},
-			"DependsOn": [
-				"Cognito"
-			]
-		},
+                            ]
+                        ]
+                    }
+                }
+            }
+        },
+        "Cognito": {
+            "Type": "AWS::Cognito::UserPool",
+            "Properties": {
+                "UserPoolName": "CFBlogging",
+                "AccountRecoverySetting": {
+                    "RecoveryMechanisms": [
+                        {
+                            "Name": "verified_email",
+                            "Priority": 1
+                        }
+                    ]
+                },
+                "AdminCreateUserConfig": {
+                    "AllowAdminCreateUserOnly": "false"
+                },
+                "Schema": [
+                    {
+                        "AttributeDataType": "String",
+                        "Name": "email",
+                        "Required": "True"
+                    },
+                    {
+                        "AttributeDataType": "String",
+                        "Name": "family_name",
+                        "Required": "True"
+                    },
+                    {
+                        "AttributeDataType": "String",
+                        "Name": "given_name",
+                        "Required": "True"
+                    },
+                    {
+                        "AttributeDataType": "String",
+                        "Name": "phone_number",
+                        "Required": "True"
+                    }
+                ],
+                "AutoVerifiedAttributes": [
+                    "email"
+                ],
+                "DeviceConfiguration": {
+                    "DeviceOnlyRememberedOnUserPrompt": true
+                },
+                "LambdaConfig": {
+                    "PostConfirmation": {
+                        "Fn::GetAtt": [
+                            "PostConfirmationLambda",
+                            "Arn"
+                        ]
+                    }
+                },
+                "Policies": {
+                    "PasswordPolicy": {
+                        "MinimumLength": 8,
+                        "RequireLowercase": "True",
+                        "RequireNumbers": "True",
+                        "RequireSymbols": "True",
+                        "RequireUppercase": "True"
+                    }
+                },
+                "UsernameAttributes": [
+                    "email"
+                ],
+                "UsernameConfiguration": {
+                    "CaseSensitive": "False"
+                },
+                "VerificationMessageTemplate": {
+                    "DefaultEmailOption": "CONFIRM_WITH_LINK",
+                    "EmailMessageByLink": "Please click the link below to verify your email address. {##Verify Email##} ",
+                    "EmailSubjectByLink": "Your verification link"
+                }
+            },
+            "DependsOn": [
+                "PostConfirmationLambda"
+            ]
+        },
+        "Domain": {
+            "Type": "AWS::Cognito::UserPoolDomain",
+            "Properties": {
+                "Domain": {
+                    "Ref": "domainName"
+                },
+                "UserPoolId": {
+                    "Fn::Select": [
+                        "1",
+                        {
+                            "Fn::Split": [
+                                "/",
+                                {
+                                    "Fn::GetAtt": [
+                                        "Cognito",
+                                        "Arn"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            },
+            "DependsOn": [
+                "Cognito"
+            ]
+        },
+        "AppClient": {
+            "Type": "AWS::Cognito::UserPoolClient",
+            "Properties": {
+                "ClientName": "blog",
+                "GenerateSecret": "False",
+                "UserPoolId": {
+                    "Fn::Select": [
+                        "1",
+                        {
+                            "Fn::Split": [
+                                "/",
+                                {
+                                    "Fn::GetAtt": [
+                                        "Cognito",
+                                        "Arn"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            },
+            "DependsOn": [
+                "Cognito"
+            ]
+        },
         "OnPostConfirmationPermission": {
             "Type": "AWS::Lambda::Permission",
             "Properties": {
@@ -304,7 +308,7 @@
             }
         },
         "blogImagesBucket": {
-            "Type" : "AWS::S3::Bucket",
+            "Type": "AWS::S3::Bucket",
             "Properties": {
                 "AccessControl": "PublicRead",
                 "BucketName": "my-blogging-images-cf-test1",
@@ -315,7 +319,10 @@
                                 "*"
                             ],
                             "AllowedMethods": [
-                                "GET", "POST", "DELETE", "PUT"
+                                "GET",
+                                "POST",
+                                "DELETE",
+                                "PUT"
                             ],
                             "AllowedOrigins": [
                                 "*"
@@ -325,15 +332,17 @@
                 }
             }
         },
-        "sendEmailLambda":{
+        "sendEmailLambda": {
             "Type": "AWS::Lambda::Function",
             "Properties": {
                 "FunctionName": "sendEmailCf",
                 "Description": "Lambda function which triggers emails to users",
-                "Role": {"Ref": "IamRole"},
+                "Role": {
+                    "Ref": "IamRole"
+                },
                 "Handler": "index.handler",
-				"Runtime": "nodejs16.x",
-				"Timeout": "10",
+                "Runtime": "nodejs16.x",
+                "Timeout": "10",
                 "Code": {
                     "ZipFile": {
                         "Fn::Join": [
@@ -376,11 +385,13 @@
             "Properties": {
                 "FunctionName": "subscribeEmailCf",
                 "Description": "Lambda function which subscribes user emails after signup",
-                "Role": {"Ref": "IamRole"},
+                "Role": {
+                    "Ref": "IamRole"
+                },
                 "Handler": "index.handler",
-				"Runtime": "nodejs16.x",
-				"Timeout": "10",
-                "Code":{
+                "Runtime": "nodejs16.x",
+                "Timeout": "10",
+                "Code": {
                     "ZipFile": {
                         "Fn::Join": [
                             "",
@@ -427,18 +438,20 @@
         },
         "postImageLambda": {
             "Type": "AWS::Lambda::Function",
-			"Properties": {
-				"FunctionName": "postImangeCf",
-				"Description": "Lambda to post images of the blog to s3",
-				"Role": { "Ref": "IamRole"},
-				"Handler": "index.handler",
-				"Runtime": "nodejs16.x",
-				"Timeout": "10",
-				"Code": {
-					"ZipFile": {
-						"Fn::Join": [
-							"",
-							[
+            "Properties": {
+                "FunctionName": "postImangeCf",
+                "Description": "Lambda to post images of the blog to s3",
+                "Role": {
+                    "Ref": "IamRole"
+                },
+                "Handler": "index.handler",
+                "Runtime": "nodejs16.x",
+                "Timeout": "10",
+                "Code": {
+                    "ZipFile": {
+                        "Fn::Join": [
+                            "",
+                            [
                                 "\nconst S3_BUCKET = 'my-blogging-images-cf-test1';",
                                 "\nconst aws = require('aws-sdk');",
                                 "\nconst s3 = new aws.S3({ apiVersion: '2006-03-01' });",
@@ -474,126 +487,155 @@
                                 "\n    }",
                                 "\n    return response;",
                                 "\n};"
-							]
-						]
-					}
-				}
-			},
-			"DependsOn": ["blogImagesBucket"]
+                            ]
+                        ]
+                    }
+                }
+            },
+            "DependsOn": [
+                "blogImagesBucket"
+            ]
         },
-		"DeleteBlogLambda": {
-			"Type": "AWS::Lambda::Function",
-			"Properties": {
-				"FunctionName": "deleteBlogCf",
-				"Description": "Lambda to delete a blog from DynamoDB",
-				"Role": { "Ref": "IamRole"},
-				"Handler": "index.handler",
-				"Runtime": "nodejs16.x",
-				"Timeout": "10",
-				"Code": {
-					"ZipFile": {
-						"Fn::Join": [
-							"",
-							[
-								"\nconst AWS = require('aws-sdk');",
-								"\nconst dynamoClient = new AWS.DynamoDB.DocumentClient();",
-								"\nexports.handler = async (event) => {",
-								"\n    const blogId = event.pathParameters.blogId;",
-								"\n    console.log(blogId);",
-								"\n    const blogParams = {",
-								"\n        TableName: 'blog',",
-								"\n        Key: {",
-								"\n            blog_id: blogId",
-								"\n        }",
-								"\n    };",
-								"\n    try {",
-								"\n        await dynamoClient.delete(blogParams).promise();",
-								"\n        const response = {",
-								"\n            statusCode: 200,",
-								"\n        };",
-								"\n        response.body = JSON.stringify({ message: 'Blog deleted successfully' });",
-								"\n        return response;",
-								"\n    } catch (err) {",
-								"\n        console.log(err);",
-								"\n    }",
-								"\n};"
-							]
-						]
-					}
-				}
-			},
-			"DependsOn": ["DDBUser", "DDBBlog"]
-		},
-		"followOrUnfollowLambda": {
+        "DeleteBlogLambda": {
             "Type": "AWS::Lambda::Function",
             "Properties": {
-                "FunctionName": "followOrUnfollowLambdaCf",
-                "Description": "Lambda to follow/unfollow a user",
-                "Role": { "Ref": "IamRole"},
+                "FunctionName": "deleteBlogCf",
+                "Description": "Lambda to delete a blog from DynamoDB",
+                "Role": {
+                    "Ref": "IamRole"
+                },
                 "Handler": "index.handler",
                 "Runtime": "nodejs16.x",
                 "Timeout": "10",
                 "Code": {
-                    "S3Bucket":"lambda-zip-files-for-cf",
+                    "ZipFile": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "\nconst AWS = require('aws-sdk');",
+                                "\nconst dynamoClient = new AWS.DynamoDB.DocumentClient();",
+                                "\nexports.handler = async (event) => {",
+                                "\n    const blogId = event.pathParameters.blogId;",
+                                "\n    console.log(blogId);",
+                                "\n    const blogParams = {",
+                                "\n        TableName: 'blog',",
+                                "\n        Key: {",
+                                "\n            blog_id: blogId",
+                                "\n        }",
+                                "\n    };",
+                                "\n    try {",
+                                "\n        await dynamoClient.delete(blogParams).promise();",
+                                "\n        const response = {",
+                                "\n            statusCode: 200,",
+                                "\n        };",
+                                "\n        response.body = JSON.stringify({ message: 'Blog deleted successfully' });",
+                                "\n        return response;",
+                                "\n    } catch (err) {",
+                                "\n        console.log(err);",
+                                "\n    }",
+                                "\n};"
+                            ]
+                        ]
+                    }
+                }
+            },
+            "DependsOn": [
+                "DDBUser",
+                "DDBBlog"
+            ]
+        },
+        "followOrUnfollowLambda": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "FunctionName": "followOrUnfollowLambdaCf",
+                "Description": "Lambda to follow/unfollow a user",
+                "Role": {
+                    "Ref": "IamRole"
+                },
+                "Handler": "index.handler",
+                "Runtime": "nodejs16.x",
+                "Timeout": "10",
+                "Code": {
+                    "S3Bucket": "lambda-zip-files-for-cf",
                     "S3Key": "followUnfollowCode/index.zip"
                 }
             },
-			"DependsOn": ["DDBUser", "DDBBlog"]
+            "DependsOn": [
+                "DDBUser",
+                "DDBBlog"
+            ]
         },
         "getAllBlogsLambda": {
             "Type": "AWS::Lambda::Function",
             "Properties": {
                 "FunctionName": "getAllBlogsLambdaCf",
                 "Description": "Lambda to get all blog from DynamoDB",
-                "Role": { "Ref": "IamRole"},
+                "Role": {
+                    "Ref": "IamRole"
+                },
                 "Handler": "index.handler",
                 "Runtime": "nodejs16.x",
                 "Timeout": "10",
                 "Code": {
-                    "S3Bucket":"lambda-zip-files-for-cf",
+                    "S3Bucket": "lambda-zip-files-for-cf",
                     "S3Key": "getAllBlogs/index.zip"
                 }
             },
-			"DependsOn": ["DDBUser", "DDBBlog"]
+            "DependsOn": [
+                "DDBUser",
+                "DDBBlog"
+            ]
         },
         "likeBlogLambda": {
             "Type": "AWS::Lambda::Function",
             "Properties": {
                 "FunctionName": "likeBlogLambdaCf",
                 "Description": "Lambda to like a blog",
-                "Role": { "Ref": "IamRole"},
+                "Role": {
+                    "Ref": "IamRole"
+                },
                 "Handler": "index.handler",
                 "Runtime": "nodejs16.x",
                 "Timeout": "10",
                 "Code": {
-                    "S3Bucket":"lambda-zip-files-for-cf",
+                    "S3Bucket": "lambda-zip-files-for-cf",
                     "S3Key": "likeBlog/index.zip"
                 }
             },
-			"DependsOn": ["DDBUser", "DDBBlog"]
+            "DependsOn": [
+                "DDBUser",
+                "DDBBlog"
+            ]
         },
         "commentBlogLambda": {
             "Type": "AWS::Lambda::Function",
             "Properties": {
                 "FunctionName": "commentBlogLambdaCf",
                 "Description": "Lambda to add comment on a blog",
-                "Role": { "Ref": "IamRole"},
+                "Role": {
+                    "Ref": "IamRole"
+                },
                 "Handler": "index.handler",
                 "Runtime": "nodejs16.x",
                 "Timeout": "10",
                 "Code": {
-                    "S3Bucket":"lambda-zip-files-for-cf",
+                    "S3Bucket": "lambda-zip-files-for-cf",
                     "S3Key": "commentBlog/index.zip"
                 }
             },
-			"DependsOn": ["DDBUser", "DDBBlog"]
+            "DependsOn": [
+                "DDBUser",
+                "DDBBlog"
+            ]
         },
         "postBlogLambda": {
             "Type": "AWS::Lambda::Function",
             "Properties": {
                 "FunctionName": "postBlogLambdaCf",
                 "Description": "Lambda to post blog to DynamoDB",
-                "Role": {"Ref": "IamRole"},
+                "Role": {
+                    "Ref": "IamRole"
+                },
                 "Handler": "index.handler",
                 "Runtime": "nodejs16.x",
                 "Timeout": "10",
@@ -602,17 +644,28 @@
                     "S3Key": "postBlog/index.zip"
                 }
             },
-			"DependsOn": ["DDBUser", "DDBBlog"]
+            "DependsOn": [
+                "DDBUser",
+                "DDBBlog"
+            ]
         },
         "cfTestGateway": {
             "Type": "AWS::ApiGatewayV2::Api",
             "Properties": {
                 "CorsConfiguration": {
-                    "AllowHeaders": ["*"],
-                    "AllowMethods": ["*"],
-                    "AllowOrigins": ["*"]
+                    "AllowHeaders": [
+                        "*"
+                    ],
+                    "AllowMethods": [
+                        "*"
+                    ],
+                    "AllowOrigins": [
+                        "*"
+                    ]
                 },
-                "CredentialsArn": { "Ref": "IamRole"},
+                "CredentialsArn": {
+                    "Ref": "IamRole"
+                },
                 "Description": "This is the backend API gateway for the cloud project",
                 "Name": "cf-test-gateway",
                 "ProtocolType": "HTTP",
@@ -624,17 +677,32 @@
                     ]
                 }
             },
-            "DependsOn": ["DeleteBlogLambda", "followOrUnfollowLambda", "getAllBlogsLambda", "likeBlogLambda", "commentBlogLambda", "postBlogLambda"]
+            "DependsOn": [
+                "DeleteBlogLambda",
+                "followOrUnfollowLambda",
+                "getAllBlogsLambda",
+                "likeBlogLambda",
+                "commentBlogLambda",
+                "postBlogLambda"
+            ]
         },
         "basicAuthorizer": {
             "Type": "AWS::ApiGatewayV2::Authorizer",
             "Properties": {
-                "ApiId": {"Ref": "cfTestGateway"},
+                "ApiId": {
+                    "Ref": "cfTestGateway"
+                },
                 "AuthorizerType": "JWT",
-                "IdentitySource": ["$request.header.Authorization"],
+                "IdentitySource": [
+                    "$request.header.Authorization"
+                ],
                 "Name": "Basic-Authorizer",
                 "JwtConfiguration": {
-                    "Audience": [{"Ref": "AppClient"}],
+                    "Audience": [
+                        {
+                            "Ref": "AppClient"
+                        }
+                    ],
                     "Issuer": {
                         "Fn::Join": [
                             "",
@@ -644,7 +712,7 @@
                                     "Fn::Select": [
                                         "1",
                                         {
-                                            "Fn::Split":[
+                                            "Fn::Split": [
                                                 "/",
                                                 {
                                                     "Fn::GetAtt": [
@@ -661,13 +729,19 @@
                     }
                 }
             },
-            "DependsOn": ["cfTestGateway"]
+            "DependsOn": [
+                "cfTestGateway"
+            ]
         },
         "deleteBlogIntegration": {
             "Type": "AWS::ApiGatewayV2::Integration",
             "Properties": {
-                "ApiId": {"Ref": "cfTestGateway"},
-                "CredentialsArn": { "Ref": "IamRole"},
+                "ApiId": {
+                    "Ref": "cfTestGateway"
+                },
+                "CredentialsArn": {
+                    "Ref": "IamRole"
+                },
                 "IntegrationMethod": "POST",
                 "IntegrationType": "AWS_PROXY",
                 "IntegrationUri": {
@@ -695,12 +769,17 @@
                 },
                 "PayloadFormatVersion": "2.0"
             },
-            "DependsOn": ["cfTestGateway", "basicAuthorizer"]
+            "DependsOn": [
+                "cfTestGateway",
+                "basicAuthorizer"
+            ]
         },
         "deleteBlogRoute": {
             "Type": "AWS::ApiGatewayV2::Route",
             "Properties": {
-                "ApiId": {"Ref": "cfTestGateway"},
+                "ApiId": {
+                    "Ref": "cfTestGateway"
+                },
                 "AuthorizationType": "JWT",
                 "AuthorizerId": {
                     "Ref": "basicAuthorizer"
@@ -718,13 +797,19 @@
                     ]
                 }
             },
-            "DependsOn": ["deleteBlogIntegration"]
+            "DependsOn": [
+                "deleteBlogIntegration"
+            ]
         },
         "followOrUnfollowIntegration": {
             "Type": "AWS::ApiGatewayV2::Integration",
             "Properties": {
-                "ApiId": {"Ref": "cfTestGateway"},
-                "CredentialsArn": { "Ref": "IamRole"},
+                "ApiId": {
+                    "Ref": "cfTestGateway"
+                },
+                "CredentialsArn": {
+                    "Ref": "IamRole"
+                },
                 "IntegrationMethod": "POST",
                 "IntegrationType": "AWS_PROXY",
                 "IntegrationUri": {
@@ -752,12 +837,17 @@
                 },
                 "PayloadFormatVersion": "2.0"
             },
-            "DependsOn": ["cfTestGateway", "basicAuthorizer"]
+            "DependsOn": [
+                "cfTestGateway",
+                "basicAuthorizer"
+            ]
         },
         "followOrUnfollowRoute": {
             "Type": "AWS::ApiGatewayV2::Route",
             "Properties": {
-                "ApiId": {"Ref": "cfTestGateway"},
+                "ApiId": {
+                    "Ref": "cfTestGateway"
+                },
                 "AuthorizationType": "JWT",
                 "AuthorizerId": {
                     "Ref": "basicAuthorizer"
@@ -775,13 +865,19 @@
                     ]
                 }
             },
-            "DependsOn": ["followOrUnfollowIntegration"]
+            "DependsOn": [
+                "followOrUnfollowIntegration"
+            ]
         },
         "likeBlogIntegration": {
             "Type": "AWS::ApiGatewayV2::Integration",
             "Properties": {
-                "ApiId": {"Ref": "cfTestGateway"},
-                "CredentialsArn": { "Ref": "IamRole"},
+                "ApiId": {
+                    "Ref": "cfTestGateway"
+                },
+                "CredentialsArn": {
+                    "Ref": "IamRole"
+                },
                 "IntegrationMethod": "POST",
                 "IntegrationType": "AWS_PROXY",
                 "IntegrationUri": {
@@ -809,12 +905,16 @@
                 },
                 "PayloadFormatVersion": "2.0"
             },
-            "DependsOn": ["cfTestGateway"]
+            "DependsOn": [
+                "cfTestGateway"
+            ]
         },
         "likeBlogRoute": {
             "Type": "AWS::ApiGatewayV2::Route",
             "Properties": {
-                "ApiId": {"Ref": "cfTestGateway"},
+                "ApiId": {
+                    "Ref": "cfTestGateway"
+                },
                 "AuthorizationType": "JWT",
                 "AuthorizerId": {
                     "Ref": "basicAuthorizer"
@@ -832,13 +932,19 @@
                     ]
                 }
             },
-            "DependsOn": ["likeBlogIntegration"]
+            "DependsOn": [
+                "likeBlogIntegration"
+            ]
         },
         "commentBlogIntegration": {
             "Type": "AWS::ApiGatewayV2::Integration",
             "Properties": {
-                "ApiId": {"Ref": "cfTestGateway"},
-                "CredentialsArn": { "Ref": "IamRole"},
+                "ApiId": {
+                    "Ref": "cfTestGateway"
+                },
+                "CredentialsArn": {
+                    "Ref": "IamRole"
+                },
                 "IntegrationMethod": "POST",
                 "IntegrationType": "AWS_PROXY",
                 "IntegrationUri": {
@@ -866,12 +972,17 @@
                 },
                 "PayloadFormatVersion": "2.0"
             },
-            "DependsOn": ["cfTestGateway", "basicAuthorizer"]
+            "DependsOn": [
+                "cfTestGateway",
+                "basicAuthorizer"
+            ]
         },
         "commentBlogRoute": {
             "Type": "AWS::ApiGatewayV2::Route",
             "Properties": {
-                "ApiId": {"Ref": "cfTestGateway"},
+                "ApiId": {
+                    "Ref": "cfTestGateway"
+                },
                 "AuthorizationType": "JWT",
                 "AuthorizerId": {
                     "Ref": "basicAuthorizer"
@@ -889,13 +1000,19 @@
                     ]
                 }
             },
-            "DependsOn": ["commentBlogIntegration"]
+            "DependsOn": [
+                "commentBlogIntegration"
+            ]
         },
         "postBlogIntegration": {
             "Type": "AWS::ApiGatewayV2::Integration",
             "Properties": {
-                "ApiId": {"Ref": "cfTestGateway"},
-                "CredentialsArn": { "Ref": "IamRole"},
+                "ApiId": {
+                    "Ref": "cfTestGateway"
+                },
+                "CredentialsArn": {
+                    "Ref": "IamRole"
+                },
                 "IntegrationMethod": "POST",
                 "IntegrationType": "AWS_PROXY",
                 "IntegrationUri": {
@@ -923,12 +1040,17 @@
                 },
                 "PayloadFormatVersion": "2.0"
             },
-            "DependsOn": ["cfTestGateway", "basicAuthorizer"]
+            "DependsOn": [
+                "cfTestGateway",
+                "basicAuthorizer"
+            ]
         },
         "postBlogRoute": {
             "Type": "AWS::ApiGatewayV2::Route",
             "Properties": {
-                "ApiId": {"Ref": "cfTestGateway"},
+                "ApiId": {
+                    "Ref": "cfTestGateway"
+                },
                 "AuthorizationType": "JWT",
                 "AuthorizerId": {
                     "Ref": "basicAuthorizer"
@@ -946,13 +1068,19 @@
                     ]
                 }
             },
-            "DependsOn": ["postBlogIntegration"]
+            "DependsOn": [
+                "postBlogIntegration"
+            ]
         },
         "postImageIntegration": {
             "Type": "AWS::ApiGatewayV2::Integration",
             "Properties": {
-                "ApiId": {"Ref": "cfTestGateway"},
-                "CredentialsArn": { "Ref": "IamRole"},
+                "ApiId": {
+                    "Ref": "cfTestGateway"
+                },
+                "CredentialsArn": {
+                    "Ref": "IamRole"
+                },
                 "IntegrationMethod": "POST",
                 "IntegrationType": "AWS_PROXY",
                 "IntegrationUri": {
@@ -980,12 +1108,17 @@
                 },
                 "PayloadFormatVersion": "2.0"
             },
-            "DependsOn": ["cfTestGateway", "basicAuthorizer"]
+            "DependsOn": [
+                "cfTestGateway",
+                "basicAuthorizer"
+            ]
         },
         "postImageRoute": {
             "Type": "AWS::ApiGatewayV2::Route",
             "Properties": {
-                "ApiId": {"Ref": "cfTestGateway"},
+                "ApiId": {
+                    "Ref": "cfTestGateway"
+                },
                 "AuthorizationType": "JWT",
                 "AuthorizerId": {
                     "Ref": "basicAuthorizer"
@@ -1003,13 +1136,19 @@
                     ]
                 }
             },
-            "DependsOn": ["postImageIntegration"]
+            "DependsOn": [
+                "postImageIntegration"
+            ]
         },
         "sendEmailIntegration": {
             "Type": "AWS::ApiGatewayV2::Integration",
             "Properties": {
-                "ApiId": {"Ref": "cfTestGateway"},
-                "CredentialsArn": { "Ref": "IamRole"},
+                "ApiId": {
+                    "Ref": "cfTestGateway"
+                },
+                "CredentialsArn": {
+                    "Ref": "IamRole"
+                },
                 "IntegrationMethod": "POST",
                 "IntegrationType": "AWS_PROXY",
                 "IntegrationUri": {
@@ -1037,12 +1176,17 @@
                 },
                 "PayloadFormatVersion": "2.0"
             },
-            "DependsOn": ["cfTestGateway", "basicAuthorizer"]
+            "DependsOn": [
+                "cfTestGateway",
+                "basicAuthorizer"
+            ]
         },
-        "sendEmailRoute":{
+        "sendEmailRoute": {
             "Type": "AWS::ApiGatewayV2::Route",
             "Properties": {
-                "ApiId": {"Ref": "cfTestGateway"},
+                "ApiId": {
+                    "Ref": "cfTestGateway"
+                },
                 "AuthorizationType": "JWT",
                 "AuthorizerId": {
                     "Ref": "basicAuthorizer"
@@ -1060,13 +1204,19 @@
                     ]
                 }
             },
-            "DependsOn": ["sendEmailIntegration"]
+            "DependsOn": [
+                "sendEmailIntegration"
+            ]
         },
         "subscribleEmailIntegration": {
             "Type": "AWS::ApiGatewayV2::Integration",
             "Properties": {
-                "ApiId": {"Ref": "cfTestGateway"},
-                "CredentialsArn": { "Ref": "IamRole"},
+                "ApiId": {
+                    "Ref": "cfTestGateway"
+                },
+                "CredentialsArn": {
+                    "Ref": "IamRole"
+                },
                 "IntegrationMethod": "POST",
                 "IntegrationType": "AWS_PROXY",
                 "IntegrationUri": {
@@ -1094,12 +1244,16 @@
                 },
                 "PayloadFormatVersion": "2.0"
             },
-            "DependsOn": ["cfTestGateway"]
+            "DependsOn": [
+                "cfTestGateway"
+            ]
         },
-        "subscribleEmailRoute":{
+        "subscribleEmailRoute": {
             "Type": "AWS::ApiGatewayV2::Route",
             "Properties": {
-                "ApiId": {"Ref": "cfTestGateway"},
+                "ApiId": {
+                    "Ref": "cfTestGateway"
+                },
                 "RouteKey": "POST /subscribeEmail",
                 "Target": {
                     "Fn::Join": [
@@ -1113,31 +1267,43 @@
                     ]
                 }
             },
-            "DependsOn": ["subscribleEmailIntegration"]
+            "DependsOn": [
+                "subscribleEmailIntegration"
+            ]
         },
         "frontendBeanstalkTest": {
             "Type": "AWS::ElasticBeanstalk::Application",
             "Properties": {
-                "ApplicationName": {"Ref": "beanstalkApplicationName"},
+                "ApplicationName": {
+                    "Ref": "beanstalkApplicationName"
+                },
                 "Description": "This is elastic beanstalk resource using for serving frontend of our group project."
             }
         },
         "beanstalkApplicationVersionTest": {
             "Type": "AWS::ElasticBeanstalk::ApplicationVersion",
             "Properties": {
-                "ApplicationName": {"Ref": "beanstalkApplicationName"},
+                "ApplicationName": {
+                    "Ref": "beanstalkApplicationName"
+                },
                 "Description": "First version of the frontend code deployed in beanstalk",
                 "SourceBundle": {
-                    "S3Bucket": {"Ref": "s3BeanstalkBucketName"},
+                    "S3Bucket": {
+                        "Ref": "s3BeanstalkBucketName"
+                    },
                     "S3Key": "Dockerrun.aws.json"
                 }
             },
-            "DependsOn": ["frontendBeanstalkTest"]
+            "DependsOn": [
+                "frontendBeanstalkTest"
+            ]
         },
         "beanstalkEnvConfigurationTemplate": {
             "Type": "AWS::ElasticBeanstalk::ConfigurationTemplate",
             "Properties": {
-                "ApplicationName": {"Ref": "beanstalkApplicationName"},
+                "ApplicationName": {
+                    "Ref": "beanstalkApplicationName"
+                },
                 "Description": "Beanstalk environment template for frontend group project",
                 "PlatformArn": "arn:aws:elasticbeanstalk:us-east-1::platform/Docker running on 64bit Amazon Linux 2/3.4.17",
                 "OptionSettings": [
@@ -1170,27 +1336,42 @@
                     {
                         "Namespace": "aws:elasticbeanstalk:environment",
                         "OptionName": "ServiceRole",
-                        "Value": {"Ref": "IamRole"}
+                        "Value": {
+                            "Ref": "IamRole"
+                        }
                     }
                 ]
             },
-            "DependsOn": ["beanstalkApplicationVersionTest"]
+            "DependsOn": [
+                "beanstalkApplicationVersionTest"
+            ]
         },
         "beanstalkEvnTest": {
             "Type": "AWS::ElasticBeanstalk::Environment",
             "Properties": {
-                "ApplicationName": {"Ref": "beanstalkApplicationName"},
+                "ApplicationName": {
+                    "Ref": "beanstalkApplicationName"
+                },
                 "Description": "Environment for deploying the frontend code",
-                "EnvironmentName": {"Ref": "beanstalkEnvironmentName"},
-                "TemplateName": {"Ref": "beanstalkEnvConfigurationTemplate"},
+                "EnvironmentName": {
+                    "Ref": "beanstalkEnvironmentName"
+                },
+                "TemplateName": {
+                    "Ref": "beanstalkEnvConfigurationTemplate"
+                },
                 "Tier": {
                     "Name": "WebServer",
                     "Type": "Standard",
                     "Version": "1.0"
                 },
-                "VersionLabel": {"Ref": "beanstalkApplicationVersionTest"}
+                "VersionLabel": {
+                    "Ref": "beanstalkApplicationVersionTest"
+                }
             },
-            "DependsOn": ["beanstalkApplicationVersionTest", "beanstalkEnvConfigurationTemplate"]
+            "DependsOn": [
+                "beanstalkApplicationVersionTest",
+                "beanstalkEnvConfigurationTemplate"
+            ]
         }
-	}
+    }
 }
