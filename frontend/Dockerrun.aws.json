@@ -1,11 +1,11 @@
 {
-    "AWSEBDockerrunVersion": "1",
-    "Image": {
-      "Name": "294727153669.dkr.ecr.us-east-1.amazonaws.com/grp-21-frontend:latest"
-    },
-    "Ports": [
-      {
-        "ContainerPort": 80
-      }
-    ]
-  }
+  "AWSEBDockerrunVersion": "1",
+  "Image": {
+    "Name": "640465963472.dkr.ecr.us-east-1.amazonaws.com/grp-21-frontend:latest"
+  },
+  "Ports": [
+    {
+      "ContainerPort": 80
+    }
+  ]
+}

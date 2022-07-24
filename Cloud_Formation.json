@@ -311,7 +311,7 @@
             "Type": "AWS::S3::Bucket",
             "Properties": {
                 "AccessControl": "PublicRead",
-                "BucketName": "my-blogging-images-cf-test1",
+                "BucketName": "my-blogging-images-cf-demo1",
                 "CorsConfiguration": {
                     "CorsRules": [
                         {
@@ -452,7 +452,7 @@
                         "Fn::Join": [
                             "",
                             [
-                                "\nconst S3_BUCKET = 'my-blogging-images-cf-test1';",
+                                "\nconst S3_BUCKET = 'my-blogging-images-cf-demo1';",
                                 "\nconst aws = require('aws-sdk');",
                                 "\nconst s3 = new aws.S3({ apiVersion: '2006-03-01' });",
                                 "\n",
@@ -556,7 +556,7 @@
                 "Runtime": "nodejs16.x",
                 "Timeout": "10",
                 "Code": {
-                    "S3Bucket": "lambda-zip-files-for-cf",
+                    "S3Bucket": "lambda-zip-files-for-cf-demo",
                     "S3Key": "followUnfollowCode/index.zip"
                 }
             },
@@ -577,7 +577,7 @@
                 "Runtime": "nodejs16.x",
                 "Timeout": "10",
                 "Code": {
-                    "S3Bucket": "lambda-zip-files-for-cf",
+                    "S3Bucket": "lambda-zip-files-for-cf-demo",
                     "S3Key": "getAllBlogs/index.zip"
                 }
             },
@@ -598,7 +598,7 @@
                 "Runtime": "nodejs16.x",
                 "Timeout": "10",
                 "Code": {
-                    "S3Bucket": "lambda-zip-files-for-cf",
+                    "S3Bucket": "lambda-zip-files-for-cf-demo",
                     "S3Key": "likeBlog/index.zip"
                 }
             },
@@ -619,7 +619,7 @@
                 "Runtime": "nodejs16.x",
                 "Timeout": "10",
                 "Code": {
-                    "S3Bucket": "lambda-zip-files-for-cf",
+                    "S3Bucket": "lambda-zip-files-for-cf-demo",
                     "S3Key": "commentBlog/index.zip"
                 }
             },
@@ -640,7 +640,7 @@
                 "Runtime": "nodejs16.x",
                 "Timeout": "10",
                 "Code": {
-                    "S3Bucket": "lambda-zip-files-for-cf",
+                    "S3Bucket": "lambda-zip-files-for-cf-demo",
                     "S3Key": "postBlog/index.zip"
                 }
             },
