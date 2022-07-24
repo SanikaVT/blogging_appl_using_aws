@@ -35,4 +35,4 @@ build:
         - aws elasticbeanstalk create-environment --application-name $BEANSTALK_APPLICATION_NAME --template-name $BEANSTALK_TEMPLATE_NAME --version-label $BEANSTALK_CODE_VERSION --environment-name $BEANSTALK_ENVIRONMENT_NAME
         # - aws elasticbeanstalk rebuild-environment --environment-name $BEANSTALK_ENVIRONMENT_NAME
     only:
-        - develop
+        - main
